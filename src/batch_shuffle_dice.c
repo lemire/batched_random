@@ -33,7 +33,8 @@ uint64_t partial_shuffle_dice_64b(
     for (uint64_t i = 1; i < k; i++) {
       bound *= n - i;
     }
-    while (r < bound) {
+    uint64_t t = -bound % bound;
+    while (r < t) {
       r = rng();
       for (uint64_t i = 0; i < k; i++) {
         x = (__uint128_t) (n - i) * (__uint128_t) r;
