@@ -48,6 +48,65 @@ uint64_t partial_shuffle_dice_64b(
 }
 
 
+// Rolls fair dice with sizes n, n-1, ..., n - (4*k - 1)
+// in four interleaved batches. The first die in batch j
+// has size n-j, and each subsequent die is smaller by 4
+//
+// Preconditions:
+//   n >= 4*k
+//   bound >= n*(n-4)*...*(n - 4*(k-1)), which must not overflow
+//   rng() produces uniformly random 64-bit values
+//   result has length at least 4*k
+//
+// The dice rolls are put in the `result` array:
+//   result[i] is an (n-i) sided die roll
+//
+// The return value is usable as `bound` with the same k and smaller n
+uint64_t partial_shuffle_dice_64b_interleaved_4x(
+  uint64_t n,
+  uint64_t k,
+  uint64_t bound,
+  uint64_t (*rng)(void),
+  uint64_t *result
+) {
+  __uint128_t x;
+  uint64_t r[4];
+  
+  for (int j = 0; j < 4; j++) {
+    r[j] = rng();
+  }
+  
+  for (uint64_t i = 0; i < k; i++) {
+    for (int j = 0; j < 4; j++) {
+      x = (__uint128_t) (n - 4*i - j) * (__uint128_t) r[j];
+      r[j] = (uint64_t) x;
+      result[4*i + j] = (uint64_t) (x >> 64);
+    }
+  }
+  
+  for (int j = 0; j < 4; j++) {
+    if (r[j] < bound) {
+      uint64_t m = n - j;
+      bound = m;
+      for (uint64_t i = 1; i < k; i++) {
+        bound *= m - 4*i;
+      }
+      uint64_t t = -bound % bound;
+      while (r[j] < t) {
+        r[j] = rng();
+        for (uint64_t i = 0; i < k; i++) {
+          x = (__uint128_t) (m - 4*i) * (__uint128_t) r[j];
+          r[j] = (uint64_t) x;
+          result[4*i + j] = (uint64_t) (x >> 64);
+        }
+      }
+    }
+  }
+  
+  return bound;
+}
+
+
 // Rolls a batch of fair dice with sizes 2, 3, ..., 17
 //
 // Preconditions:
