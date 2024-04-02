@@ -77,14 +77,14 @@ uint64_t partial_shuffle_dice_64b_interleaved_4x(
   }
   
   for (uint64_t i = 0; i < k; i++) {
-    for (int j = 0; j < 4; j++) {
+    for (uint64_t j = 0; j < 4; j++) {
       x = (__uint128_t) (n - 4*i - j) * (__uint128_t) r[j];
       r[j] = (uint64_t) x;
       result[4*i + j] = (uint64_t) (x >> 64);
     }
   }
   
-  for (int j = 0; j < 4; j++) {
+  for (uint64_t j = 0; j < 4; j++) {
     if (r[j] < bound) {
       uint64_t m = n - j;
       bound = m;

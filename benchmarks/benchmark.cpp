@@ -41,12 +41,19 @@ void bench(std::vector<uint64_t> &input) {
   pretty_print(volume, volume * sizeof(uint64_t), "standard shuffle",
                bench([&input]() { shuffle(input.data(), input.size()); },
                      min_repeat, min_time_ns, max_repeat));
+
+  pretty_print(volume, volume * sizeof(uint64_t), "batch shuffle",
+               bench([&input]() { shuffle_batch(input.data(), input.size()); },
+                     min_repeat, min_time_ns, max_repeat));
 }
 
+
 int main(int argc, char **argv) {
-  std::vector<uint64_t> input(1 << 16);
-  bench(input);
-  std::cout << std::endl;
+  for(size_t i = 1<<8; i <= 1<<24; i <<= 4) {
+    std::vector<uint64_t> input(i);
+    bench(input);
+    std::cout << std::endl;
+  }
 
   return EXIT_SUCCESS;
 }
