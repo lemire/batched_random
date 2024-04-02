@@ -23,7 +23,7 @@ uint64_t random_bounded(uint64_t range) {
       leftover = (uint64_t)multiresult;
     }
   }
-  return multiresult >> 64; // [0, range)
+  return (uint64_t)(multiresult >> 64); // [0, range)
 }
 
 // Rolls a batch of fair dice with sizes n, n-1, ..., n-(k-1)
