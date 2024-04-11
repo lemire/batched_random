@@ -11,5 +11,7 @@ uint64_t random_bounded(uint64_t range);
 // shuffle the storage array
 void shuffle(uint64_t *storage, uint64_t size);
 void shuffle_batch(uint64_t *storage, uint64_t size);
+void shuffle_batch_2(uint64_t *storage, uint64_t size);
+
 void shuffle_naive_batch(uint64_t *storage, uint64_t size);
 #endif // BATCHED_RANDOM_H

@@ -104,6 +104,7 @@ void shuffle_naive_batch(uint64_t *storage, uint64_t size) {
   }
 }
 
+
 void shuffle_batch(uint64_t *storage, uint64_t size) {
   uint64_t i;
   uint64_t result[4];
@@ -133,3 +134,38 @@ void shuffle_batch(uint64_t *storage, uint64_t size) {
     storage[nextpos] = tmp; // you might have to read this store later
   }
 }
+
+
+
+
+
+void shuffle_batch_2(uint64_t *storage, uint64_t size) {
+  uint64_t i;
+  uint64_t result[4];
+  uint64_t nextpos, tmp, val;
+  i = size;
+  if (i <= 0x40000000) {
+    for (i = size; i > 2; i -= 2) {
+      batch_random(i, 2, i * (i - 1), result);
+      nextpos = result[0];
+      tmp = storage[i - 1];   // likely in cache
+      val = storage[nextpos]; // could be costly
+      storage[i - 1] = val;
+      storage[nextpos] = tmp; // you might have to read this store later
+      nextpos = result[1];
+      tmp = storage[i - 2];   // likely in cache
+      val = storage[nextpos]; // could be costly
+      storage[i - 2] = val;
+      storage[nextpos] = tmp; // you might have to read this store later
+    }
+  }
+
+  for (; i > 1; i--) {
+    nextpos = random_bounded(i);
+    tmp = storage[i - 1];   // likely in cache
+    val = storage[nextpos]; // could be costly
+    storage[i - 1] = val;
+    storage[nextpos] = tmp; // you might have to read this store later
+  }
+}
+

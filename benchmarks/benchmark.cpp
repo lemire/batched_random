@@ -35,15 +35,18 @@ void bench(std::vector<uint64_t> &input) {
   std::cout << "volume      : " << volume * sizeof(uint64_t) / 1024 / 1024.
             << " MB" << std::endl;
 
-  size_t min_repeat = 1;
-  size_t min_time_ns = 100000000;
+  size_t min_repeat = 10;
+  size_t min_time_ns = 1000000000;
   size_t max_repeat = 10000;
   pretty_print(volume, volume * sizeof(uint64_t), "standard shuffle",
                bench([&input]() { shuffle(input.data(), input.size()); },
                      min_repeat, min_time_ns, max_repeat));
 
-  pretty_print(volume, volume * sizeof(uint64_t), "batch shuffle",
+  pretty_print(volume, volume * sizeof(uint64_t), "batch shuffle (2^32 limit)",
                bench([&input]() { shuffle_batch(input.data(), input.size()); },
+                     min_repeat, min_time_ns, max_repeat));
+  pretty_print(volume, volume * sizeof(uint64_t), "batch shuffle (2^30 limit)",
+               bench([&input]() { shuffle_batch_2(input.data(), input.size()); },
                      min_repeat, min_time_ns, max_repeat));
 }
 
