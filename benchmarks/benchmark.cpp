@@ -12,6 +12,17 @@ extern "C" {
 #include "random_bounded.h"
 }
 
+
+void precomp_shuffle(uint64_t *storage, uint64_t size, const uint64_t *precomputed) {
+  uint64_t nextpos, tmp, val;
+  for (size_t i = size; i > 1; i--) {
+    nextpos = precomputed[i];
+    tmp = storage[i - 1];   // likely in cache
+    val = storage[nextpos]; // could be costly
+    storage[i - 1] = val;
+    storage[nextpos] = tmp; // you might have to read this store later
+  }
+}
 void pretty_print(size_t volume, size_t bytes, std::string name,
                   event_aggregate agg) {
   printf("%-40s : ", name.c_str());
@@ -28,6 +39,10 @@ void pretty_print(size_t volume, size_t bytes, std::string name,
 
 void bench(std::vector<uint64_t> &input) {
   size_t volume = input.size();
+  std::vector<uint64_t> precomputed(volume+1);
+  for (size_t i = 1; i < volume+1; i++) {
+    precomputed[i] = random_bounded(i);
+  }
   if (volume == 0) {
     return;
   }
@@ -48,6 +63,10 @@ void bench(std::vector<uint64_t> &input) {
   pretty_print(volume, volume * sizeof(uint64_t), "batch shuffle (2^30 limit)",
                bench([&input]() { shuffle_batch_2(input.data(), input.size()); },
                      min_repeat, min_time_ns, max_repeat));
+  pretty_print(volume, volume * sizeof(uint64_t), "directed_shuffle (as a reference)",
+               bench([&input,precomputed]() { precomp_shuffle(input.data(), input.size(), precomputed.data()); },
+                     min_repeat, min_time_ns, max_repeat));
+
 }
 
 
