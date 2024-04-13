@@ -8,6 +8,11 @@ template <class function_type>
 event_aggregate bench(const function_type &function, size_t min_repeat = 1,
                       size_t min_time_ns = 1000000000,
                       size_t max_repeat = 1000000) {
+  // run it a few times to warm up the cache
+  for (size_t i = 0; i < 10; i++) {
+    function();
+  }
+
   event_aggregate aggregate{};
   size_t N = min_repeat;
   if (N == 0) {

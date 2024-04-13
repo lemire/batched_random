@@ -24,10 +24,11 @@ void precomp_shuffle(uint64_t *storage, uint64_t size, const uint64_t *precomput
   }
 }
 void pretty_print(size_t volume, size_t bytes, std::string name,
-                  event_aggregate agg) {
+                  event_aggregate agg, bool display = true) {
   printf("%-40s : ", name.c_str());
   printf(" %5.2f Gi/s ", volume / agg.fastest_elapsed_ns());
-  printf(" %5.2f GB/s ", bytes / agg.fastest_elapsed_ns());
+  double range = (agg.elapsed_ns() - agg.fastest_elapsed_ns())/agg.elapsed_ns() * 100.0;
+  printf(" %5.2f GB/s (%2.0f %%) ", bytes / agg.fastest_elapsed_ns(), range);
   if (collector.has_events()) {
     printf(" %5.2f GHz ", agg.fastest_cycles() / agg.fastest_elapsed_ns());
     printf(" %5.2f c/b ", agg.fastest_cycles() / bytes);
@@ -51,17 +52,14 @@ void bench(std::vector<uint64_t> &input) {
             << " MB" << std::endl;
 
   size_t min_repeat = 10;
-  size_t min_time_ns = 1000000000;
-  size_t max_repeat = 10000;
+  size_t min_time_ns = 10000000000;
+  size_t max_repeat = 100000;
   pretty_print(volume, volume * sizeof(uint64_t), "standard shuffle",
                bench([&input]() { shuffle(input.data(), input.size()); },
                      min_repeat, min_time_ns, max_repeat));
 
-  pretty_print(volume, volume * sizeof(uint64_t), "batch shuffle (2^32 limit)",
+  pretty_print(volume, volume * sizeof(uint64_t), "batch shuffle",
                bench([&input]() { shuffle_batch(input.data(), input.size()); },
-                     min_repeat, min_time_ns, max_repeat));
-  pretty_print(volume, volume * sizeof(uint64_t), "batch shuffle (2^30 limit)",
-               bench([&input]() { shuffle_batch_2(input.data(), input.size()); },
                      min_repeat, min_time_ns, max_repeat));
   pretty_print(volume, volume * sizeof(uint64_t), "directed_shuffle (as a reference)",
                bench([&input,precomputed]() { precomp_shuffle(input.data(), input.size(), precomputed.data()); },
@@ -71,7 +69,7 @@ void bench(std::vector<uint64_t> &input) {
 
 
 int main(int argc, char **argv) {
-  for(size_t i = 1<<8; i <= 1<<24; i <<= 4) {
+  for(size_t i = 1<<8; i <= 1<<24; i <<= 2) {
     std::vector<uint64_t> input(i);
     bench(input);
     std::cout << std::endl;
