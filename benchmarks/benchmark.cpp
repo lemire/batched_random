@@ -52,7 +52,7 @@ void bench(std::vector<uint64_t> &input) {
             << " MB" << std::endl;
 
   size_t min_repeat = 10;
-  size_t min_time_ns = 10000000000;
+  size_t min_time_ns = 100000000;
   size_t max_repeat = 100000;
   pretty_print(volume, volume * sizeof(uint64_t), "standard shuffle",
                bench([&input]() { shuffle(input.data(), input.size()); },
@@ -61,6 +61,19 @@ void bench(std::vector<uint64_t> &input) {
   pretty_print(volume, volume * sizeof(uint64_t), "batch shuffle",
                bench([&input]() { shuffle_batch(input.data(), input.size()); },
                      min_repeat, min_time_ns, max_repeat));
+
+  pretty_print(volume, volume * sizeof(uint64_t), "batch shuffle 2",
+               bench([&input]() { shuffle_batch_2(input.data(), input.size()); },
+                     min_repeat, min_time_ns, max_repeat));
+
+  pretty_print(volume, volume * sizeof(uint64_t), "batch shuffle 2-4",
+               bench([&input]() { shuffle_batch_2_4(input.data(), input.size()); },
+                     min_repeat, min_time_ns, max_repeat));
+
+  pretty_print(volume, volume * sizeof(uint64_t), "batch shuffle 2-4-6",
+               bench([&input]() { shuffle_batch_2_4_6(input.data(), input.size()); },
+                     min_repeat, min_time_ns, max_repeat));
+  
   pretty_print(volume, volume * sizeof(uint64_t), "directed_shuffle (as a reference)",
                bench([&input,precomputed]() { precomp_shuffle(input.data(), input.size(), precomputed.data()); },
                      min_repeat, min_time_ns, max_repeat));
@@ -69,7 +82,7 @@ void bench(std::vector<uint64_t> &input) {
 
 
 int main(int argc, char **argv) {
-  for(size_t i = 1<<8; i <= 1<<24; i <<= 2) {
+  for(size_t i = 1<<6; i <= 1<<16; i <<= 1) {
     std::vector<uint64_t> input(i);
     bench(input);
     std::cout << std::endl;
