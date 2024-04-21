@@ -95,7 +95,7 @@ void shuffle_naive_batch(uint64_t *storage, uint64_t size) {
     storage[i - 2] = val;
     storage[nextpos2] = tmp; // you might have to read this store later
   }
-  for (i = size; i > 1; i--) {
+  for (; i > 1; i--) {
     nextpos = random_bounded(i);
     tmp = storage[i - 1];   // likely in cache
     val = storage[nextpos]; // could be costly
@@ -135,3 +135,76 @@ void shuffle_batch(uint64_t *storage, uint64_t size) {
   }
 }
 
+
+void shuffle_batch_2(uint64_t *storage, uint64_t size) {
+  uint64_t i = size;
+  for (; i > 0x40000000; i--) {
+    partial_shuffle_64b(storage, i, 1, i, lehmer64);
+  }
+
+  // Batches of 2 for sizes up to 2^30 elements
+  uint64_t bound = i * (i - 1);
+  for (; i > 1; i -= 2) {
+    bound = partial_shuffle_64b(storage, i, 2, bound, lehmer64);
+  }
+}
+
+
+void shuffle_batch_2_4(uint64_t *storage, uint64_t size) {
+  uint64_t i = size;
+  for (; i > 0x40000000; i--) {
+    partial_shuffle_64b(storage, i, 1, i, lehmer64);
+  }
+
+  // Batches of 2 for sizes between 2^14 and 2^30 elements
+  uint64_t bound = i * (i - 1);
+  for (; i > 0x4000; i -= 2) {
+    bound = partial_shuffle_64b(storage, i, 2, bound, lehmer64);
+  }
+
+  // Batches of 4 for sizes up to 2^14 elements
+  // compute i * (i-1) * (i-2) * (i-3) with only 2 multiplications
+  bound = i * (i - 3);
+  bound *= bound + 2;
+  for (; i > 4; i -= 4) {
+    bound = partial_shuffle_64b(storage, i, 4, bound, lehmer64);
+  }
+  
+  if (i > 1) {
+    partial_shuffle_64b(storage, i, i-1, 24, lehmer64);
+  }
+}
+
+
+void shuffle_batch_2_4_6(uint64_t *storage, uint64_t size) {
+  uint64_t i = size;
+  for (; i > 0x40000000; i--) {
+    partial_shuffle_64b(storage, i, 1, i, lehmer64);
+  }
+
+  // Batches of 2 for sizes between 2^14 and 2^30 elements
+	uint64_t bound = i * (i - 1);
+	for (; i > 0x4000; i -= 2) {
+		bound = partial_shuffle_64b(storage, i, 2, bound, lehmer64);
+	}
+
+  // Batches of 4 for sizes between 2^9 and 2^14 elements
+	// compute i * (i-1) * (i-2) * (i-3) with only 2 multiplications
+	bound = i * (i - 3);
+	bound *= bound + 2;
+	for (; i > 512; i -= 4) {
+		bound = partial_shuffle_64b(storage, i, 4, bound, lehmer64);
+	}
+
+  // Batches of 6 for sizes up to 2^9 elements
+	// compute i * (i-1) * ... * (i-5) with only 3 multiplications
+	bound = i * (i - 5);
+	bound *= (bound + 4) * (bound + 6);
+	for (; i > 6; i -= 6) {
+		bound = partial_shuffle_64b(storage, i, 6, bound, lehmer64);
+	}
+  
+  if (i > 1) {
+    partial_shuffle_64b(storage, i, i-1, 720, lehmer64);
+  }
+}
