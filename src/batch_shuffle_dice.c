@@ -1,5 +1,64 @@
 #include <stdint.h>
 
+// Performs k steps of a Fisher-Yates shuffle on n elements, in the array `storage`.
+//
+// Preconditions:
+//   n >= k >= 1
+//   bound >= n*(n-1)*...*(n-(k-1)), which must not overflow
+//   rng() produces uniformly random 64-bit values
+//
+// Postconditions:
+//   The first n-k elements of `storage` have not been shuffled.
+//   The return value is usable as `bound` for smaller batches of size k.
+uint64_t partial_shuffle_64b(
+  uint64_t *storage,
+  uint64_t n,
+  uint64_t k,
+  uint64_t bound,
+  uint64_t (*rng)(void)
+) {
+  __uint128_t x;
+  uint64_t r = rng();
+  uint64_t pos1, pos2;
+  uint64_t val1, val2;
+  
+  for (uint64_t i = 0; i < k; i++) {
+    x = (__uint128_t) (n - i) * (__uint128_t) r;
+    r = (uint64_t) x;
+    pos1 = n - i - 1;
+    pos2 = (uint64_t) (x >> 64);
+    val1 = storage[pos1];  // should be in cache
+    val2 = storage[pos2];  // might not be in cache
+    storage[pos1] = val2;
+    storage[pos2] = val1;  // will be read later
+  }
+  
+  if (r < bound) {
+    bound = n;
+    for (uint64_t i = 1; i < k; i++) {
+      bound *= n - i;
+    }
+    uint64_t t = -bound % bound;
+    
+    while (r < t) {
+      r = rng();
+      for (uint64_t i = 0; i < k; i++) {
+        x = (__uint128_t) (n - i) * (__uint128_t) r;
+        r = (uint64_t) x;
+        pos1 = n - i - 1;
+        pos2 = (uint64_t) (x >> 64);
+        val1 = storage[pos1];  // should be in cache
+        val2 = storage[pos2];  // might not be in cache
+        storage[pos1] = val2;
+        storage[pos2] = val1;  // will be read later
+      }
+    }
+  }
+  
+  return bound;
+}
+
+
 // Rolls a batch of fair dice with sizes n, n-1, ..., n-(k-1)
 //
 // Preconditions:
