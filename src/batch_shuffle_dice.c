@@ -7,9 +7,7 @@
 //   bound >= n*(n-1)*...*(n-(k-1)), which must not overflow
 //   rng() produces uniformly random 64-bit values
 //
-// Postconditions:
-//   The first n-k elements of `storage` have not been shuffled.
-//   The return value is usable as `bound` for smaller batches of size k.
+// The return value is usable as `bound` for smaller batches of size k.
 uint64_t partial_shuffle_64b(
   uint64_t *storage,
   uint64_t n,
