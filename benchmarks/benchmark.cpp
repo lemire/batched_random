@@ -11,9 +11,10 @@
 extern "C" {
 #include "random_bounded.h"
 }
+#include "template_shuffle.h"
 
-
-void precomp_shuffle(uint64_t *storage, uint64_t size, const uint64_t *precomputed) {
+void precomp_shuffle(uint64_t *storage, uint64_t size,
+                     const uint64_t *precomputed) {
   uint64_t nextpos, tmp, val;
   for (size_t i = size; i > 1; i--) {
     nextpos = precomputed[i];
@@ -27,7 +28,8 @@ void pretty_print(size_t volume, size_t bytes, std::string name,
                   event_aggregate agg, bool display = true) {
   printf("%-40s : ", name.c_str());
   printf(" %5.2f Gi/s ", volume / agg.fastest_elapsed_ns());
-  double range = (agg.elapsed_ns() - agg.fastest_elapsed_ns())/agg.elapsed_ns() * 100.0;
+  double range =
+      (agg.elapsed_ns() - agg.fastest_elapsed_ns()) / agg.elapsed_ns() * 100.0;
   printf(" %5.2f GB/s (%2.0f %%) ", bytes / agg.fastest_elapsed_ns(), range);
   if (collector.has_events()) {
     printf(" %5.2f GHz ", agg.fastest_cycles() / agg.fastest_elapsed_ns());
@@ -40,8 +42,8 @@ void pretty_print(size_t volume, size_t bytes, std::string name,
 
 void bench(std::vector<uint64_t> &input) {
   size_t volume = input.size();
-  std::vector<uint64_t> precomputed(volume+1);
-  for (size_t i = 1; i < volume+1; i++) {
+  std::vector<uint64_t> precomputed(volume + 1);
+  for (size_t i = 1; i < volume + 1; i++) {
     precomputed[i] = random_bounded(i);
   }
   if (volume == 0) {
@@ -54,6 +56,25 @@ void bench(std::vector<uint64_t> &input) {
   size_t min_repeat = 10;
   size_t min_time_ns = 100000000;
   size_t max_repeat = 100000;
+  printf("Note: The C++ shuffles use std::mt19937_64.\n");
+
+  pretty_print(volume, volume * sizeof(uint64_t), "C++ std::shuffle",
+               bench(
+                   [&input]() {
+                     std::random_device rd;
+                     std::mt19937_64 generator{rd()};
+                     std::shuffle(input.begin(), input.end(), generator);
+                   },
+                   min_repeat, min_time_ns, max_repeat));
+  pretty_print(volume, volume * sizeof(uint64_t), "C++ batched_random::shuffle_2_4",
+               bench(
+                   [&input]() {
+                     std::random_device rd;
+                     std::mt19937_64 generator{rd()};
+                     batched_random::shuffle_2_4(input.begin(), input.end(),
+                                             generator);
+                   },
+                   min_repeat, min_time_ns, max_repeat));
   pretty_print(volume, volume * sizeof(uint64_t), "standard shuffle",
                bench([&input]() { shuffle(input.data(), input.size()); },
                      min_repeat, min_time_ns, max_repeat));
@@ -62,27 +83,41 @@ void bench(std::vector<uint64_t> &input) {
                bench([&input]() { shuffle_batch(input.data(), input.size()); },
                      min_repeat, min_time_ns, max_repeat));
 
-  pretty_print(volume, volume * sizeof(uint64_t), "batch shuffle 2",
-               bench([&input]() { shuffle_batch_2(input.data(), input.size()); },
-                     min_repeat, min_time_ns, max_repeat));
+  pretty_print(
+      volume, volume * sizeof(uint64_t), "batch shuffle 2",
+      bench([&input]() { shuffle_batch_2(input.data(), input.size()); },
+            min_repeat, min_time_ns, max_repeat));
 
-  pretty_print(volume, volume * sizeof(uint64_t), "batch shuffle 2-4",
-               bench([&input]() { shuffle_batch_2_4(input.data(), input.size()); },
-                     min_repeat, min_time_ns, max_repeat));
+  pretty_print(
+      volume, volume * sizeof(uint64_t), "batch shuffle 2-4",
+      bench([&input]() { shuffle_batch_2_4(input.data(), input.size()); },
+            min_repeat, min_time_ns, max_repeat));
 
-  pretty_print(volume, volume * sizeof(uint64_t), "batch shuffle 2-4-6",
-               bench([&input]() { shuffle_batch_2_4_6(input.data(), input.size()); },
+  pretty_print(
+      volume, volume * sizeof(uint64_t), "batch shuffle 2-4-6",
+      bench([&input]() { shuffle_batch_2_4_6(input.data(), input.size()); },
+            min_repeat, min_time_ns, max_repeat));
+  pretty_print(volume, volume * sizeof(uint64_t), "standard shuffle (PCG64)",
+               bench([&input]() { shuffle_pcg64(input.data(), input.size()); },
                      min_repeat, min_time_ns, max_repeat));
-  
-  pretty_print(volume, volume * sizeof(uint64_t), "directed_shuffle (as a reference)",
-               bench([&input,precomputed]() { precomp_shuffle(input.data(), input.size(), precomputed.data()); },
-                     min_repeat, min_time_ns, max_repeat));
-
+  pretty_print(
+      volume, volume * sizeof(uint64_t), "batch shuffle 2-4  (PCG64)",
+      bench([&input]() { shuffle_batch_2_4_pcg64(input.data(), input.size()); },
+            min_repeat, min_time_ns, max_repeat));
+  pretty_print(
+      volume, volume * sizeof(uint64_t), "directed_shuffle (as a reference)",
+      bench(
+          [&input, precomputed]() {
+            precomp_shuffle(input.data(), input.size(), precomputed.data());
+          },
+          min_repeat, min_time_ns, max_repeat));
 }
 
-
 int main(int argc, char **argv) {
-  for(size_t i = 1<<6; i <= 1<<16; i <<= 1) {
+  seed(1234);
+  // We want to make sure we extend the range far enough to see regressions
+  // for large arrays, if any.
+  for (size_t i = 1 << 7; i <= 1 << 17; i <<= 1) {
     std::vector<uint64_t> input(i);
     bench(input);
     std::cout << std::endl;

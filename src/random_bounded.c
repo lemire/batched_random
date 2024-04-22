@@ -5,8 +5,9 @@
 
 #include "batch_shuffle_dice.c"
 #include "lehmer64.h"
+#include "pcg64.h"
 
-void seed(uint64_t s) { lehmer64_seed(s); }
+void seed(uint64_t s) { lehmer64_seed(s); pcg64_seed(s); }
 
 uint64_t random_bounded(uint64_t range) {
   __uint128_t random64bit, multiresult;
@@ -19,6 +20,26 @@ uint64_t random_bounded(uint64_t range) {
     threshold = -range % range;
     while (leftover < threshold) {
       random64bit = lehmer64();
+      multiresult = random64bit * range;
+      leftover = (uint64_t)multiresult;
+    }
+  }
+  return (uint64_t)(multiresult >> 64); // [0, range)
+}
+
+
+uint64_t random_bounded_pcg64(uint64_t range) {
+  __uint128_t random64bit, multiresult;
+  uint64_t leftover;
+  uint64_t threshold;
+  random64bit = pcg64();
+  multiresult = random64bit * range;
+  leftover = (uint64_t)multiresult;
+  if (leftover < range) {
+    threshold = -range % range;
+    while (leftover < threshold) {
+      random64bit = pcg64();
+      printf("random64bit: %lu\n", random64bit);
       multiresult = random64bit * range;
       leftover = (uint64_t)multiresult;
     }
@@ -72,6 +93,17 @@ void shuffle(uint64_t *storage, uint64_t size) {
   uint64_t i;
   for (i = size; i > 1; i--) {
     uint64_t nextpos = random_bounded(i);
+    uint64_t tmp = storage[i - 1];   // likely in cache
+    uint64_t val = storage[nextpos]; // could be costly
+    storage[i - 1] = val;
+    storage[nextpos] = tmp; // you might have to read this store later
+  }
+}
+
+void shuffle_pcg64(uint64_t *storage, uint64_t size) {
+  uint64_t i;
+  for (i = size; i > 1; i--) {
+    uint64_t nextpos = random_bounded_pcg64(i);
     uint64_t tmp = storage[i - 1];   // likely in cache
     uint64_t val = storage[nextpos]; // could be costly
     storage[i - 1] = val;
@@ -206,5 +238,32 @@ void shuffle_batch_2_4_6(uint64_t *storage, uint64_t size) {
   
   if (i > 1) {
     partial_shuffle_64b(storage, i, i-1, 720, lehmer64);
+  }
+}
+
+
+
+void shuffle_batch_2_4_pcg64(uint64_t *storage, uint64_t size) {
+  uint64_t i = size;
+  for (; i > 0x40000000; i--) {
+    partial_shuffle_64b(storage, i, 1, i, pcg64);
+  }
+
+  // Batches of 2 for sizes between 2^14 and 2^30 elements
+  uint64_t bound = i * (i - 1);
+  for (; i > 0x4000; i -= 2) {
+    bound = partial_shuffle_64b(storage, i, 2, bound, pcg64);
+  }
+
+  // Batches of 4 for sizes up to 2^14 elements
+  // compute i * (i-1) * (i-2) * (i-3) with only 2 multiplications
+  bound = i * (i - 3);
+  bound *= bound + 2;
+  for (; i > 4; i -= 4) {
+    bound = partial_shuffle_64b(storage, i, 4, bound, pcg64);
+  }
+  
+  if (i > 1) {
+    partial_shuffle_64b(storage, i, i-1, 24, pcg64);
   }
 }
