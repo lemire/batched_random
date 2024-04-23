@@ -24,6 +24,7 @@ void precomp_shuffle(uint64_t *storage, uint64_t size,
     storage[nextpos] = tmp; // you might have to read this store later
   }
 }
+
 void pretty_print(size_t volume, size_t bytes, std::string name,
                   event_aggregate agg, bool display = true) {
   printf("%-40s : ", name.c_str());
@@ -49,6 +50,10 @@ void bench(std::vector<uint64_t> &input) {
   if (volume == 0) {
     return;
   }
+
+  std::random_device rd;
+  std::mt19937_64 mtGenerator{rd()};
+  
   std::cout << "volume      : " << volume << " words" << std::endl;
   std::cout << "volume      : " << volume * sizeof(uint64_t) / 1024 / 1024.
             << " MB" << std::endl;
@@ -58,23 +63,35 @@ void bench(std::vector<uint64_t> &input) {
   size_t max_repeat = 100000;
   printf("Note: The C++ shuffles use std::mt19937_64.\n");
 
+  
+  // Mersenne twister
+  
   pretty_print(volume, volume * sizeof(uint64_t), "C++ std::shuffle",
                bench(
-                   [&input]() {
-                     std::random_device rd;
-                     std::mt19937_64 generator{rd()};
-                     std::shuffle(input.begin(), input.end(), generator);
+                   [&input, &mtGenerator]() {
+                     std::shuffle(input.begin(), input.end(), mtGenerator);
                    },
                    min_repeat, min_time_ns, max_repeat));
+  
   pretty_print(volume, volume * sizeof(uint64_t), "C++ batched_random::shuffle_2_4",
                bench(
-                   [&input]() {
-                     std::random_device rd;
-                     std::mt19937_64 generator{rd()};
+                   [&input, &mtGenerator]() {
                      batched_random::shuffle_2_4(input.begin(), input.end(),
-                                             generator);
+                                             mtGenerator);
                    },
                    min_repeat, min_time_ns, max_repeat));
+  
+  pretty_print(volume, volume * sizeof(uint64_t), "C++ batched_random::shuffle_2_4_6",
+               bench(
+                   [&input, &mtGenerator]() {
+                     batched_random::shuffle_2_4_6(input.begin(), input.end(),
+                                             mtGenerator);
+                   },
+                   min_repeat, min_time_ns, max_repeat));
+  
+  
+  // Lehmer
+  
   pretty_print(volume, volume * sizeof(uint64_t), "standard shuffle",
                bench([&input]() { shuffle(input.data(), input.size()); },
                      min_repeat, min_time_ns, max_repeat));
@@ -97,13 +114,27 @@ void bench(std::vector<uint64_t> &input) {
       volume, volume * sizeof(uint64_t), "batch shuffle 2-4-6",
       bench([&input]() { shuffle_batch_2_4_6(input.data(), input.size()); },
             min_repeat, min_time_ns, max_repeat));
+  
+  
+  // PCG
+  
   pretty_print(volume, volume * sizeof(uint64_t), "standard shuffle (PCG64)",
                bench([&input]() { shuffle_pcg64(input.data(), input.size()); },
                      min_repeat, min_time_ns, max_repeat));
+  
   pretty_print(
       volume, volume * sizeof(uint64_t), "batch shuffle 2-4  (PCG64)",
       bench([&input]() { shuffle_batch_2_4_pcg64(input.data(), input.size()); },
             min_repeat, min_time_ns, max_repeat));
+  
+  pretty_print(
+      volume, volume * sizeof(uint64_t), "batch shuffle 2-4-6  (PCG64)",
+      bench([&input]() { shuffle_batch_2_4_6_pcg64(input.data(), input.size()); },
+            min_repeat, min_time_ns, max_repeat));
+  
+  
+  // Precomputed
+  
   pretty_print(
       volume, volume * sizeof(uint64_t), "directed_shuffle (as a reference)",
       bench(
