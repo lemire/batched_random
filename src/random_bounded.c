@@ -39,7 +39,7 @@ uint64_t random_bounded_pcg64(uint64_t range) {
     threshold = -range % range;
     while (leftover < threshold) {
       random64bit = pcg64();
-      printf("random64bit: %lu\n", random64bit);
+      // printf("random64bit: %lu\n", random64bit);
       multiresult = random64bit * range;
       leftover = (uint64_t)multiresult;
     }
