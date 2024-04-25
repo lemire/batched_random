@@ -45,7 +45,7 @@ static inline uint64_t pcg_rotr_64(uint64_t value, unsigned int rot) {
 
 static inline uint64_t pcg_output_xsl_rr_128_64(pcg128_t state) {
   return pcg_rotr_64(((uint64_t)(state >> 64u)) ^ (uint64_t)state,
-                     state >> 122u);
+                     (unsigned int)(state >> 122u));
 }
 
 static inline uint64_t
