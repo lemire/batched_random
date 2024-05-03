@@ -17,6 +17,8 @@ void shuffle_batch_2_4_6(uint64_t *storage, uint64_t size);
 
 // shuffle the storage array, relies on pcg64
 void shuffle_pcg64(uint64_t *storage, uint64_t size);
+void shuffle_batch_pcg64(uint64_t *storage, uint64_t size);
+void shuffle_batch_2_pcg64(uint64_t *storage, uint64_t size);
 void shuffle_batch_2_4_pcg64(uint64_t *storage, uint64_t size);
 void shuffle_batch_2_4_6_pcg64(uint64_t *storage, uint64_t size);
 

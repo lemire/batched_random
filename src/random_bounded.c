@@ -87,6 +87,36 @@ static inline uint64_t batch_random(uint64_t n, uint64_t k, uint64_t bound,
   return bound;
 }
 
+static inline uint64_t batch_random_pcg64(uint64_t n, uint64_t k, uint64_t bound,
+                                    uint64_t *result) {
+  __uint128_t x;
+  uint64_t r = pcg64();
+
+  for (uint64_t i = 0; i < k; i++) {
+    x = (__uint128_t)(n - i) * (__uint128_t)r;
+    r = (uint64_t)x;
+    result[i] = (uint64_t)(x >> 64);
+  }
+
+  if (r < bound) {
+    bound = n;
+    for (uint64_t i = 1; i < k; i++) {
+      bound *= n - i;
+    }
+    uint64_t t = -bound % bound;
+    while (r < t) {
+      r = pcg64();
+      for (uint64_t i = 0; i < k; i++) {
+        x = (__uint128_t)(n - i) * (__uint128_t)r;
+        r = (uint64_t)x;
+        result[i] = (uint64_t)(x >> 64);
+      }
+    }
+  }
+
+  return bound;
+}
+
 void shuffle(uint64_t *storage, uint64_t size) {
   uint64_t i;
   for (i = size; i > 1; i--) {
@@ -112,7 +142,7 @@ void shuffle_pcg64(uint64_t *storage, uint64_t size) {
 void shuffle_naive_batch(uint64_t *storage, uint64_t size) {
   uint64_t i = size;
   uint64_t nextpos, nextpos1, nextpos2, tmp, val;
-  
+
   for (; i > 0x40000000; i--) {
     nextpos = random_bounded(i);
     tmp = storage[i - 1];   // likely in cache
@@ -120,7 +150,7 @@ void shuffle_naive_batch(uint64_t *storage, uint64_t size) {
     storage[i - 1] = val;
     storage[nextpos] = tmp; // you might have to read this store later
   }
-  
+
   for (; i > 1; i -= 2) {
     nextpos1 = random_bounded(i);
     nextpos2 = random_bounded(i - 1);
@@ -141,7 +171,7 @@ void shuffle_batch(uint64_t *storage, uint64_t size) {
   uint64_t i = size;
   uint64_t result[2];
   uint64_t nextpos, tmp, val;
-  
+
   for (; i > 0x40000000; i--) {
     nextpos = random_bounded(i);
     tmp = storage[i - 1];   // likely in cache
@@ -149,7 +179,7 @@ void shuffle_batch(uint64_t *storage, uint64_t size) {
     storage[i - 1] = val;
     storage[nextpos] = tmp; // you might have to read this store later
   }
-  
+
   uint64_t bound = i * (i  - 1);
   for (; i > 1; i -= 2) {
     bound = batch_random(i, 2, bound, result);
@@ -200,7 +230,7 @@ void shuffle_batch_2_4(uint64_t *storage, uint64_t size) {
   for (; i > 4; i -= 4) {
     bound = partial_shuffle_64b(storage, i, 4, bound, lehmer64);
   }
-  
+
   if (i > 1) {
     partial_shuffle_64b(storage, i, i-1, 24, lehmer64);
   }
@@ -234,13 +264,55 @@ void shuffle_batch_2_4_6(uint64_t *storage, uint64_t size) {
 	for (; i > 6; i -= 6) {
 		bound = partial_shuffle_64b(storage, i, 6, bound, lehmer64);
 	}
-  
+
   if (i > 1) {
     partial_shuffle_64b(storage, i, i-1, 720, lehmer64);
   }
 }
 
 
+void shuffle_batch_pcg64(uint64_t *storage, uint64_t size) {
+  uint64_t i = size;
+  uint64_t result[2];
+  uint64_t nextpos, tmp, val;
+
+  for (; i > 0x40000000; i--) {
+    nextpos = random_bounded(i);
+    tmp = storage[i - 1];   // likely in cache
+    val = storage[nextpos]; // could be costly
+    storage[i - 1] = val;
+    storage[nextpos] = tmp; // you might have to read this store later
+  }
+
+  uint64_t bound = i * (i  - 1);
+  for (; i > 1; i -= 2) {
+    bound = batch_random_pcg64(i, 2, bound, result);
+    nextpos = result[0];
+    tmp = storage[i - 1];   // likely in cache
+    val = storage[nextpos]; // could be costly
+    storage[i - 1] = val;
+    storage[nextpos] = tmp; // you might have to read this store later
+    nextpos = result[1];
+    tmp = storage[i - 2];   // likely in cache
+    val = storage[nextpos]; // could be costly
+    storage[i - 2] = val;
+    storage[nextpos] = tmp; // you might have to read this store later
+  }
+}
+
+
+void shuffle_batch_2_pcg64(uint64_t *storage, uint64_t size) {
+  uint64_t i = size;
+  for (; i > 0x40000000; i--) {
+    partial_shuffle_64b(storage, i, 1, i, pcg64);
+  }
+
+  // Batches of 2 for sizes up to 2^30 elements
+  uint64_t bound = i * (i - 1);
+  for (; i > 1; i -= 2) {
+    bound = partial_shuffle_64b(storage, i, 2, bound, pcg64);
+  }
+}
 
 void shuffle_batch_2_4_pcg64(uint64_t *storage, uint64_t size) {
   uint64_t i = size;
@@ -261,7 +333,7 @@ void shuffle_batch_2_4_pcg64(uint64_t *storage, uint64_t size) {
   for (; i > 4; i -= 4) {
     bound = partial_shuffle_64b(storage, i, 4, bound, pcg64);
   }
-  
+
   if (i > 1) {
     partial_shuffle_64b(storage, i, i-1, 24, pcg64);
   }
@@ -295,7 +367,7 @@ void shuffle_batch_2_4_6_pcg64(uint64_t *storage, uint64_t size) {
 	for (; i > 6; i -= 6) {
 		bound = partial_shuffle_64b(storage, i, 6, bound, pcg64);
 	}
-  
+
   if (i > 1) {
     partial_shuffle_64b(storage, i, i-1, 720, pcg64);
   }

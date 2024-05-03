@@ -139,18 +139,20 @@ struct named_function {
   shuffle_function function;
 };
 
+named_function func[] = {
+    {"shuffle", shuffle},
+    {"shuffle_batch", shuffle_batch},
+    {"shuffle_batch_2", shuffle_batch_2},
+    {"shuffle_batch_2_4", shuffle_batch_2_4},
+    {"shuffle_batch_2_4_6", shuffle_batch_2_4_6},
+    {"shuffle_pcg64", shuffle_pcg64},
+    {"shuffle_batch_pcg64", shuffle_batch_pcg64},
+    {"shuffle_batch_2_pcg64", shuffle_batch_2_pcg64},
+    {"shuffle_batch_2_4_pcg64", shuffle_batch_2_4_pcg64},
+    {"shuffle_batch_2_4_6_pcg64", shuffle_batch_2_4_6_pcg64},
+    {"shuffle_naive_batch", shuffle_naive_batch}};
 bool test_everyone_can_move_everywhere() {
   std::cout << __FUNCTION__ << std::endl;
-  named_function func[] = {
-      {"shuffle", shuffle},
-      {"shuffle_batch", shuffle_batch},
-      {"shuffle_batch_2", shuffle_batch_2},
-      {"shuffle_batch_2_4", shuffle_batch_2_4},
-      {"shuffle_batch_2_4_6", shuffle_batch_2_4_6},
-      {"shuffle_pcg64", shuffle_pcg64},
-      {"shuffle_batch_2_4_pcg64", shuffle_batch_2_4_pcg64},
-      {"shuffle_batch_2_4_6_pcg64", shuffle_batch_2_4_6_pcg64},
-      {"shuffle_naive_batch", shuffle_naive_batch}};
   for (const auto &f : func) {
     std::cout << std::setw(40) << f.name << ": ";
     std::cout.flush();
@@ -166,16 +168,6 @@ bool test_everyone_can_move_everywhere() {
 
 bool test_uniformity_test() {
   std::cout << __FUNCTION__ << std::endl;
-  named_function func[] = {
-      {"shuffle", shuffle},
-      {"shuffle_batch", shuffle_batch},
-      {"shuffle_batch_2", shuffle_batch_2},
-      {"shuffle_batch_2_4", shuffle_batch_2_4},
-      {"shuffle_batch_2_4_6", shuffle_batch_2_4_6},
-      {"shuffle_pcg64", shuffle_pcg64},
-      {"shuffle_batch_2_4_pcg64", shuffle_batch_2_4_pcg64},
-      {"shuffle_batch_2_4_6_pcg64", shuffle_batch_2_4_6_pcg64},
-      {"shuffle_naive_batch", shuffle_naive_batch}};
   for (const auto &f : func) {
     std::cout << std::setw(40) << f.name << ": ";
     std::cout.flush();
@@ -191,16 +183,6 @@ bool test_uniformity_test() {
 
 bool test_any_possible_pair_at_the_start() {
   std::cout << __FUNCTION__ << std::endl;
-  named_function func[] = {
-      {"shuffle", shuffle},
-      {"shuffle_batch", shuffle_batch},
-      {"shuffle_batch_2", shuffle_batch_2},
-      {"shuffle_batch_2_4", shuffle_batch_2_4},
-      {"shuffle_batch_2_4_6", shuffle_batch_2_4_6},
-      {"shuffle_pcg64", shuffle_pcg64},
-      {"shuffle_batch_2_4_pcg64", shuffle_batch_2_4_pcg64},
-      {"shuffle_batch_2_4_6_pcg64", shuffle_batch_2_4_6_pcg64},
-      {"shuffle_naive_batch", shuffle_naive_batch}};
   for (const auto &f : func) {
     std::cout << std::setw(40) << f.name << ": ";
     std::cout.flush();
@@ -216,16 +198,6 @@ bool test_any_possible_pair_at_the_start() {
 
 bool test_any_possible_pair_at_the_end() {
   std::cout << __FUNCTION__ << std::endl;
-  named_function func[] = {
-      {"shuffle", shuffle},
-      {"shuffle_batch", shuffle_batch},
-      {"shuffle_batch_2", shuffle_batch_2},
-      {"shuffle_batch_2_4", shuffle_batch_2_4},
-      {"shuffle_batch_2_4_6", shuffle_batch_2_4_6},
-      {"shuffle_pcg64", shuffle_pcg64},
-      {"shuffle_batch_2_4_pcg64", shuffle_batch_2_4_pcg64},
-      {"shuffle_batch_2_4_6_pcg64", shuffle_batch_2_4_6_pcg64},
-      {"shuffle_naive_batch", shuffle_naive_batch}};
   for (const auto &f : func) {
     std::cout << std::setw(40) << f.name << ": ";
     std::cout.flush();

@@ -130,6 +130,16 @@ void bench(std::vector<uint64_t> &input) {
                      min_repeat, min_time_ns, max_repeat));
 
   pretty_print(
+      volume, volume * sizeof(uint64_t), "batch shuffle (PCG64)",
+      bench([&input]() { shuffle_batch_pcg64(input.data(), input.size()); },
+            min_repeat, min_time_ns, max_repeat));
+
+  pretty_print(
+      volume, volume * sizeof(uint64_t), "batch shuffle 2  (PCG64)",
+      bench([&input]() { shuffle_batch_2_pcg64(input.data(), input.size()); },
+            min_repeat, min_time_ns, max_repeat));
+
+  pretty_print(
       volume, volume * sizeof(uint64_t), "batch shuffle 2-4  (PCG64)",
       bench([&input]() { shuffle_batch_2_4_pcg64(input.data(), input.size()); },
             min_repeat, min_time_ns, max_repeat));
@@ -155,7 +165,7 @@ int main(int argc, char **argv) {
   seed(1234);
   // We want to make sure we extend the range far enough to see regressions
   // for large arrays, if any.
-  for (size_t i = 1 << 7; i <= 1 << 16; i <<= 1) {
+  for (size_t i = 1 << 8; i <= 1 << 16; i <<= 1) {
     std::vector<uint64_t> input(i);
     bench(input);
     std::cout << std::endl;
