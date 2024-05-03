@@ -47,18 +47,21 @@ void bench(std::vector<uint64_t> &input) {
   if (volume == 0) {
     return;
   }
-  if(volume > std::numeric_limits<uint32_t>::max()) {
-    std::cerr << "WARNING: Volume too large for precomputed shuffle." << std::endl;
+  if (volume > std::numeric_limits<uint32_t>::max()) {
+    std::cerr << "WARNING: Volume too large for precomputed shuffle."
+              << std::endl;
   }
   std::vector<uint32_t> precomputed(volume + 1);
   for (size_t i = 1; i < volume + 1; i++) {
     precomputed[i] = random_bounded(i);
   }
-
+  std::cout << "Volume of precomputed values "
+            << precomputed.size() * sizeof(uint32_t) / 1024 << " kB"
+            << std::endl;
 
   std::random_device rd;
   std::mt19937_64 mtGenerator{rd()};
-  
+
   std::cout << "volume      : " << volume << " words" << std::endl;
   std::cout << "volume      : " << volume * sizeof(uint64_t) / 1024 / 1024.
             << " MB" << std::endl;
@@ -68,35 +71,35 @@ void bench(std::vector<uint64_t> &input) {
   size_t max_repeat = 100000;
   printf("Note: The C++ shuffles use std::mt19937_64.\n");
 
-  
   // Mersenne twister
-  
+
   pretty_print(volume, volume * sizeof(uint64_t), "C++ std::shuffle",
                bench(
                    [&input, &mtGenerator]() {
                      std::shuffle(input.begin(), input.end(), mtGenerator);
                    },
                    min_repeat, min_time_ns, max_repeat));
-  
-  pretty_print(volume, volume * sizeof(uint64_t), "C++ batched_random::shuffle_2_4",
+
+  pretty_print(volume, volume * sizeof(uint64_t),
+               "C++ batched_random::shuffle_2_4",
                bench(
                    [&input, &mtGenerator]() {
                      batched_random::shuffle_2_4(input.begin(), input.end(),
-                                             mtGenerator);
+                                                 mtGenerator);
                    },
                    min_repeat, min_time_ns, max_repeat));
-  
-  pretty_print(volume, volume * sizeof(uint64_t), "C++ batched_random::shuffle_2_4_6",
+
+  pretty_print(volume, volume * sizeof(uint64_t),
+               "C++ batched_random::shuffle_2_4_6",
                bench(
                    [&input, &mtGenerator]() {
                      batched_random::shuffle_2_4_6(input.begin(), input.end(),
-                                             mtGenerator);
+                                                   mtGenerator);
                    },
                    min_repeat, min_time_ns, max_repeat));
-  
-  
+
   // Lehmer
-  
+
   pretty_print(volume, volume * sizeof(uint64_t), "standard shuffle",
                bench([&input]() { shuffle(input.data(), input.size()); },
                      min_repeat, min_time_ns, max_repeat));
@@ -119,27 +122,26 @@ void bench(std::vector<uint64_t> &input) {
       volume, volume * sizeof(uint64_t), "batch shuffle 2-4-6",
       bench([&input]() { shuffle_batch_2_4_6(input.data(), input.size()); },
             min_repeat, min_time_ns, max_repeat));
-  
-  
+
   // PCG
-  
+
   pretty_print(volume, volume * sizeof(uint64_t), "standard shuffle (PCG64)",
                bench([&input]() { shuffle_pcg64(input.data(), input.size()); },
                      min_repeat, min_time_ns, max_repeat));
-  
+
   pretty_print(
       volume, volume * sizeof(uint64_t), "batch shuffle 2-4  (PCG64)",
       bench([&input]() { shuffle_batch_2_4_pcg64(input.data(), input.size()); },
             min_repeat, min_time_ns, max_repeat));
-  
+
   pretty_print(
       volume, volume * sizeof(uint64_t), "batch shuffle 2-4-6  (PCG64)",
-      bench([&input]() { shuffle_batch_2_4_6_pcg64(input.data(), input.size()); },
-            min_repeat, min_time_ns, max_repeat));
-  
-  
+      bench(
+          [&input]() { shuffle_batch_2_4_6_pcg64(input.data(), input.size()); },
+          min_repeat, min_time_ns, max_repeat));
+
   // Precomputed
-  
+
   pretty_print(
       volume, volume * sizeof(uint64_t), "directed_shuffle (as a reference)",
       bench(
@@ -153,7 +155,7 @@ int main(int argc, char **argv) {
   seed(1234);
   // We want to make sure we extend the range far enough to see regressions
   // for large arrays, if any.
-  for (size_t i = 1 << 7; i <= 1 << 17; i <<= 1) {
+  for (size_t i = 1 << 7; i <= 1 << 16; i <<= 1) {
     std::vector<uint64_t> input(i);
     bench(input);
     std::cout << std::endl;
