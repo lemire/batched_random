@@ -14,8 +14,9 @@ extern "C" {
 #include "template_shuffle.h"
 
 void precomp_shuffle(uint64_t *storage, uint64_t size,
-                     const uint64_t *precomputed) {
-  uint64_t nextpos, tmp, val;
+                     const uint32_t *precomputed) {
+  uint64_t tmp, val;
+  uint32_t nextpos;
   for (size_t i = size; i > 1; i--) {
     nextpos = precomputed[i];
     tmp = storage[i - 1];   // likely in cache
@@ -26,7 +27,7 @@ void precomp_shuffle(uint64_t *storage, uint64_t size,
 }
 
 void pretty_print(size_t volume, size_t bytes, std::string name,
-                  event_aggregate agg, bool display = true) {
+                  event_aggregate agg) {
   printf("%-40s : ", name.c_str());
   printf(" %5.2f Gi/s ", volume / agg.fastest_elapsed_ns());
   double range =
@@ -43,13 +44,17 @@ void pretty_print(size_t volume, size_t bytes, std::string name,
 
 void bench(std::vector<uint64_t> &input) {
   size_t volume = input.size();
-  std::vector<uint64_t> precomputed(volume + 1);
-  for (size_t i = 1; i < volume + 1; i++) {
-    precomputed[i] = random_bounded(i);
-  }
   if (volume == 0) {
     return;
   }
+  if(volume > std::numeric_limits<uint32_t>::max()) {
+    std::cerr << "WARNING: Volume too large for precomputed shuffle." << std::endl;
+  }
+  std::vector<uint32_t> precomputed(volume + 1);
+  for (size_t i = 1; i < volume + 1; i++) {
+    precomputed[i] = random_bounded(i);
+  }
+
 
   std::random_device rd;
   std::mt19937_64 mtGenerator{rd()};
