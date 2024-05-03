@@ -47,7 +47,7 @@ void bench(std::vector<uint64_t> &input) {
   if (volume == 0) {
     return;
   }
-  if (volume > std::numeric_limits<uint32_t>::max()) {
+  if (volume > 0xFFFFFFFF) {
     std::cerr << "WARNING: Volume too large for precomputed shuffle."
               << std::endl;
   }
