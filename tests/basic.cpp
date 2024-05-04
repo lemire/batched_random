@@ -141,12 +141,10 @@ struct named_function {
 
 named_function func[] = {
     {"shuffle", shuffle},
-    {"shuffle_batch", shuffle_batch},
     {"shuffle_batch_2", shuffle_batch_2},
     {"shuffle_batch_2_4", shuffle_batch_2_4},
     {"shuffle_batch_2_4_6", shuffle_batch_2_4_6},
     {"shuffle_pcg64", shuffle_pcg64},
-    {"shuffle_batch_pcg64", shuffle_batch_pcg64},
     {"shuffle_batch_2_pcg64", shuffle_batch_2_pcg64},
     {"shuffle_batch_2_4_pcg64", shuffle_batch_2_4_pcg64},
     {"shuffle_batch_2_4_6_pcg64", shuffle_batch_2_4_6_pcg64},

@@ -167,36 +167,6 @@ void shuffle_naive_batch(uint64_t *storage, uint64_t size) {
 }
 
 
-void shuffle_batch(uint64_t *storage, uint64_t size) {
-  uint64_t i = size;
-  uint64_t result[2];
-  uint64_t nextpos, tmp, val;
-
-  for (; i > 0x40000000; i--) {
-    nextpos = random_bounded(i);
-    tmp = storage[i - 1];   // likely in cache
-    val = storage[nextpos]; // could be costly
-    storage[i - 1] = val;
-    storage[nextpos] = tmp; // you might have to read this store later
-  }
-
-  uint64_t bound = i * (i  - 1);
-  for (; i > 1; i -= 2) {
-    bound = batch_random(i, 2, bound, result);
-    nextpos = result[0];
-    tmp = storage[i - 1];   // likely in cache
-    val = storage[nextpos]; // could be costly
-    storage[i - 1] = val;
-    storage[nextpos] = tmp; // you might have to read this store later
-    nextpos = result[1];
-    tmp = storage[i - 2];   // likely in cache
-    val = storage[nextpos]; // could be costly
-    storage[i - 2] = val;
-    storage[nextpos] = tmp; // you might have to read this store later
-  }
-}
-
-
 void shuffle_batch_2(uint64_t *storage, uint64_t size) {
   uint64_t i = size;
   for (; i > 0x40000000; i--) {
@@ -270,35 +240,6 @@ void shuffle_batch_2_4_6(uint64_t *storage, uint64_t size) {
   }
 }
 
-
-void shuffle_batch_pcg64(uint64_t *storage, uint64_t size) {
-  uint64_t i = size;
-  uint64_t result[2];
-  uint64_t nextpos, tmp, val;
-
-  for (; i > 0x40000000; i--) {
-    nextpos = random_bounded(i);
-    tmp = storage[i - 1];   // likely in cache
-    val = storage[nextpos]; // could be costly
-    storage[i - 1] = val;
-    storage[nextpos] = tmp; // you might have to read this store later
-  }
-
-  uint64_t bound = i * (i  - 1);
-  for (; i > 1; i -= 2) {
-    bound = batch_random_pcg64(i, 2, bound, result);
-    nextpos = result[0];
-    tmp = storage[i - 1];   // likely in cache
-    val = storage[nextpos]; // could be costly
-    storage[i - 1] = val;
-    storage[nextpos] = tmp; // you might have to read this store later
-    nextpos = result[1];
-    tmp = storage[i - 2];   // likely in cache
-    val = storage[nextpos]; // could be costly
-    storage[i - 2] = val;
-    storage[nextpos] = tmp; // you might have to read this store later
-  }
-}
 
 
 void shuffle_batch_2_pcg64(uint64_t *storage, uint64_t size) {

@@ -66,6 +66,26 @@ uint64_t partial_shuffle_64b(RandomIt storage, uint64_t n, uint64_t k,
   return bound;
 }
 
+
+// This is a template function that shuffles the elements in the range [first,
+// last)
+template <class RandomIt, class URBG>
+extern void shuffle_2(RandomIt first, RandomIt last, URBG &&g) {
+
+  uint64_t i = std::distance(first, last);
+  for (; i > 0x40000000; i--) {
+    partial_shuffle_64b(first, i, 1, i, g);
+  }
+
+  // Batches of 2 for sizes between 2^14 and 2^30 elements
+  uint64_t bound = i * (i - 1);
+  for (; i > 1; i -= 2) {
+    bound = partial_shuffle_64b(first, i, 2, bound, g);
+  }
+}
+
+
+
 // This is a template function that shuffles the elements in the range [first,
 // last)
 template <class RandomIt, class URBG>

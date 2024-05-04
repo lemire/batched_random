@@ -81,6 +81,14 @@ void bench(std::vector<uint64_t> &input) {
                    min_repeat, min_time_ns, max_repeat));
 
   pretty_print(volume, volume * sizeof(uint64_t),
+               "C++ batched_random::shuffle_2",
+               bench(
+                   [&input, &mtGenerator]() {
+                     batched_random::shuffle_2_4(input.begin(), input.end(),
+                                                 mtGenerator);
+                   },
+                   min_repeat, min_time_ns, max_repeat));
+  pretty_print(volume, volume * sizeof(uint64_t),
                "C++ batched_random::shuffle_2_4",
                bench(
                    [&input, &mtGenerator]() {
@@ -104,10 +112,6 @@ void bench(std::vector<uint64_t> &input) {
                bench([&input]() { shuffle(input.data(), input.size()); },
                      min_repeat, min_time_ns, max_repeat));
 
-  pretty_print(volume, volume * sizeof(uint64_t), "batch shuffle",
-               bench([&input]() { shuffle_batch(input.data(), input.size()); },
-                     min_repeat, min_time_ns, max_repeat));
-
   pretty_print(
       volume, volume * sizeof(uint64_t), "batch shuffle 2",
       bench([&input]() { shuffle_batch_2(input.data(), input.size()); },
@@ -128,11 +132,6 @@ void bench(std::vector<uint64_t> &input) {
   pretty_print(volume, volume * sizeof(uint64_t), "standard shuffle (PCG64)",
                bench([&input]() { shuffle_pcg64(input.data(), input.size()); },
                      min_repeat, min_time_ns, max_repeat));
-
-  pretty_print(
-      volume, volume * sizeof(uint64_t), "batch shuffle (PCG64)",
-      bench([&input]() { shuffle_batch_pcg64(input.data(), input.size()); },
-            min_repeat, min_time_ns, max_repeat));
 
   pretty_print(
       volume, volume * sizeof(uint64_t), "batch shuffle 2  (PCG64)",
