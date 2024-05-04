@@ -12,6 +12,8 @@ extern "C" {
 #include "random_bounded.h"
 }
 #include "template_shuffle.h"
+#include "generators.h"
+
 
 void precomp_shuffle(uint64_t *storage, uint64_t size,
                      const uint32_t *precomputed) {
@@ -28,7 +30,7 @@ void precomp_shuffle(uint64_t *storage, uint64_t size,
 
 void pretty_print(size_t volume, size_t bytes, std::string name,
                   event_aggregate agg) {
-  printf("%-40s : ", name.c_str());
+  printf("%-45s : ", name.c_str());
   printf(" %5.2f Gi/s ", volume / agg.fastest_elapsed_ns());
   double best_speed = volume / agg.fastest_elapsed_ns();
   double avg_speed = volume / agg.elapsed_ns();
@@ -63,6 +65,7 @@ void bench(std::vector<uint64_t> &input) {
 
   std::random_device rd;
   std::mt19937_64 mtGenerator{rd()};
+  lehmer64 lehmerGenerator{rd};
 
   std::cout << "volume      : " << volume << " words" << std::endl;
   std::cout << "volume      : " << volume * sizeof(uint64_t) / 1024 / 1024.
@@ -71,11 +74,43 @@ void bench(std::vector<uint64_t> &input) {
   size_t min_repeat = 10;
   size_t min_time_ns = 100000000;
   size_t max_repeat = 100000;
-  printf("Note: The C++ shuffles use std::mt19937_64.\n");
+  //printf("Note: The C++ shuffles use std::mt19937_64.\n");
 
+  pretty_print(volume, volume * sizeof(uint64_t), "C++ std::shuffle (lehmer)",
+               bench(
+                   [&input, &lehmerGenerator]() {
+                     std::shuffle(input.begin(), input.end(), lehmerGenerator);
+                   },
+                   min_repeat, min_time_ns, max_repeat));
+
+  pretty_print(volume, volume * sizeof(uint64_t),
+               "C++ batched_random::shuffle_2  (lehmer)",
+               bench(
+                   [&input, &lehmerGenerator]() {
+                     batched_random::shuffle_2(input.begin(), input.end(),
+                                                 lehmerGenerator);
+                   },
+                   min_repeat, min_time_ns, max_repeat));
+  pretty_print(volume, volume * sizeof(uint64_t),
+               "C++ batched_random::shuffle_2_4 (lehmer)",
+               bench(
+                   [&input, &lehmerGenerator]() {
+                     batched_random::shuffle_2_4(input.begin(), input.end(),
+                                                 lehmerGenerator);
+                   },
+                   min_repeat, min_time_ns, max_repeat));
+
+  pretty_print(volume, volume * sizeof(uint64_t),
+               "C++ batched_random::shuffle_2_4_6 (lehmer)",
+               bench(
+                   [&input, &lehmerGenerator]() {
+                     batched_random::shuffle_2_4_6(input.begin(), input.end(),
+                                                   lehmerGenerator);
+                   },
+                   min_repeat, min_time_ns, max_repeat));
   // Mersenne twister
 
-  pretty_print(volume, volume * sizeof(uint64_t), "C++ std::shuffle",
+  pretty_print(volume, volume * sizeof(uint64_t), "C++ std::shuffle (mersenne)",
                bench(
                    [&input, &mtGenerator]() {
                      std::shuffle(input.begin(), input.end(), mtGenerator);
@@ -83,7 +118,7 @@ void bench(std::vector<uint64_t> &input) {
                    min_repeat, min_time_ns, max_repeat));
 
   pretty_print(volume, volume * sizeof(uint64_t),
-               "C++ batched_random::shuffle_2",
+               "C++ batched_random::shuffle_2 (mersenne)",
                bench(
                    [&input, &mtGenerator]() {
                      batched_random::shuffle_2(input.begin(), input.end(),
@@ -91,7 +126,7 @@ void bench(std::vector<uint64_t> &input) {
                    },
                    min_repeat, min_time_ns, max_repeat));
   pretty_print(volume, volume * sizeof(uint64_t),
-               "C++ batched_random::shuffle_2_4",
+               "C++ batched_random::shuffle_2_4 (mersenne)",
                bench(
                    [&input, &mtGenerator]() {
                      batched_random::shuffle_2_4(input.begin(), input.end(),
@@ -100,7 +135,7 @@ void bench(std::vector<uint64_t> &input) {
                    min_repeat, min_time_ns, max_repeat));
 
   pretty_print(volume, volume * sizeof(uint64_t),
-               "C++ batched_random::shuffle_2_4_6",
+               "C++ batched_random::shuffle_2_4_6 (mersenne)",
                bench(
                    [&input, &mtGenerator]() {
                      batched_random::shuffle_2_4_6(input.begin(), input.end(),
@@ -110,22 +145,22 @@ void bench(std::vector<uint64_t> &input) {
 
   // Lehmer
 
-  pretty_print(volume, volume * sizeof(uint64_t), "standard shuffle",
+  pretty_print(volume, volume * sizeof(uint64_t), "standard shuffle (lehmer)",
                bench([&input]() { shuffle(input.data(), input.size()); },
                      min_repeat, min_time_ns, max_repeat));
 
   pretty_print(
-      volume, volume * sizeof(uint64_t), "batch shuffle 2",
+      volume, volume * sizeof(uint64_t), "batch shuffle 2 (lehmer)",
       bench([&input]() { shuffle_batch_2(input.data(), input.size()); },
             min_repeat, min_time_ns, max_repeat));
 
   pretty_print(
-      volume, volume * sizeof(uint64_t), "batch shuffle 2-4",
+      volume, volume * sizeof(uint64_t), "batch shuffle 2-4 (lehmer)",
       bench([&input]() { shuffle_batch_2_4(input.data(), input.size()); },
             min_repeat, min_time_ns, max_repeat));
 
   pretty_print(
-      volume, volume * sizeof(uint64_t), "batch shuffle 2-4-6",
+      volume, volume * sizeof(uint64_t), "batch shuffle 2-4-6 (lehmer)",
       bench([&input]() { shuffle_batch_2_4_6(input.data(), input.size()); },
             min_repeat, min_time_ns, max_repeat));
 
@@ -166,7 +201,7 @@ int main(int , char **) {
   seed(1234);
   // We want to make sure we extend the range far enough to see regressions
   // for large arrays, if any.
-  for (size_t i = 1 << 8; i <= 1 << 16; i <<= 1) {
+  for (size_t i = 1 << 13; i <= 1 << 18; i <<= 1) {
     std::vector<uint64_t> input(i);
     bench(input);
     std::cout << std::endl;

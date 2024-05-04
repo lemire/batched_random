@@ -12,6 +12,7 @@ extern "C" {
 #include "random_bounded.h"
 }
 #include "template_shuffle.h"
+#include "generators.h"
 std::vector<uint32_t> precomputed;
 void precomp_shuffle(uint64_t *storage, uint64_t size) {
   uint64_t tmp, val;
@@ -57,6 +58,10 @@ named_function func[] = {
 using cpp_shuffle_function = void (*)(std::vector<uint64_t>::iterator,
                                       std::vector<uint64_t>::iterator,
                                       std::mt19937_64 &&);
+
+using fast_cpp_shuffle_function = void (*)(std::vector<uint64_t>::iterator,
+                                      std::vector<uint64_t>::iterator,
+                                      lehmer64 &&);
 struct named_cpp_function {
   std::string name;
   cpp_shuffle_function function;
@@ -75,6 +80,24 @@ named_cpp_function cppfunc[] = {
                                    std::mt19937_64>},
 
 };
+struct named_fast_cpp_function {
+  std::string name;
+  fast_cpp_shuffle_function function;
+};
+named_fast_cpp_function fastcppfunc[] = {
+    {"std::shuffle-lehmer64",
+     std::shuffle<std::vector<uint64_t>::iterator, lehmer64>},
+    {"batched_random::shuffle_2-lehmer64",
+     batched_random::shuffle_2<std::vector<uint64_t>::iterator,
+                               lehmer64>},
+    {"batched_random::shuffle_2_4-lehmer64",
+     batched_random::shuffle_2_4<std::vector<uint64_t>::iterator,
+                                 lehmer64>},
+    {"batched_random::shuffle_2_4_6-lehmer64",
+     batched_random::shuffle_2_4_6<std::vector<uint64_t>::iterator,
+                                   lehmer64>},
+};
+
 
 void bench_line(std::vector<uint64_t> &input) {
   size_t volume = input.size();
@@ -85,8 +108,16 @@ void bench_line(std::vector<uint64_t> &input) {
   }
   std::random_device rd;
   std::mt19937_64 mtGenerator{rd()};
-  size_t min_time = 100000;
+  lehmer64 lehmerGenerator{rd};
 
+  size_t min_time = 100000;
+  for (auto &f : fastcppfunc) {
+    pretty_print(volume, volume * sizeof(uint64_t), f.name,
+                 bench([&input, &f, &lehmerGenerator]() {
+                   f.function(input.begin(), input.end(),
+                              lehmer64(lehmerGenerator));
+                 }, min_time));
+  }
   for (auto &f : cppfunc) {
     pretty_print(volume, volume * sizeof(uint64_t), f.name,
                  bench([&input, &f, &mtGenerator]() {
@@ -106,6 +137,9 @@ void bench_table(size_t start, size_t end, size_t lines) {
   printf("# for each scheme, we give the best time/item and the average "
          "time/item in ns \n");
   printf("# Volume\t");
+  for (auto &f : fastcppfunc) {
+    printf("\t%s", f.name.c_str());
+  }
   for (auto &f : cppfunc) {
     printf("\t%s", f.name.c_str());
   }
@@ -122,6 +156,6 @@ void bench_table(size_t start, size_t end, size_t lines) {
 
 int main(int , char **) {
   seed(1234);
-  bench_table(1 << 8, 1 << 16, 16);
+  bench_table(1 << 13, 1 << 18, 5);
   return EXIT_SUCCESS;
 }
