@@ -86,7 +86,7 @@ void bench(std::vector<uint64_t> &input) {
                "C++ batched_random::shuffle_2",
                bench(
                    [&input, &mtGenerator]() {
-                     batched_random::shuffle_2_4(input.begin(), input.end(),
+                     batched_random::shuffle_2(input.begin(), input.end(),
                                                  mtGenerator);
                    },
                    min_repeat, min_time_ns, max_repeat));
