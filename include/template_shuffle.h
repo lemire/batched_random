@@ -5,7 +5,7 @@
 // last) using the random number generator g. It is a standard feature in C++.
 
 #include <algorithm>
-
+#include <limits>
 // This code is meant to look like the C++ standard library.
 // It is not especially readable.
 

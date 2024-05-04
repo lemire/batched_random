@@ -54,7 +54,7 @@ bool uniformity_test(const function_type &function) {
       bits[i][input[i]] += 1;
     }
   }
-  size_t overall_min = std::numeric_limits<size_t>::max();
+  size_t overall_min {std::numeric_limits<size_t>::max() };
   size_t overall_max = 0;
   size_t average = 0;
 
