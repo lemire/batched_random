@@ -1,7 +1,7 @@
 See `src` directory for the main code.
 
 ```
-make
+CXX=clang++ CC=clang make
 ./benchmark
 ```
 
@@ -9,3 +9,4 @@ To run tests:
 ```
 ./basic
 ```
+

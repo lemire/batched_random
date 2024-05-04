@@ -45,13 +45,13 @@ struct named_function {
 named_function func[] = {
     {"precomp_shuffle", precomp_shuffle},
     {"shuffle", shuffle},
-    //{"shuffle_batch_2", shuffle_batch_2},
+    {"shuffle_batch_2", shuffle_batch_2},
     {"shuffle_batch_2_4", shuffle_batch_2_4},
-    //{"shuffle_batch_2_4_6", shuffle_batch_2_4_6},
+    {"shuffle_batch_2_4_6", shuffle_batch_2_4_6},
     {"shuffle_pcg64", shuffle_pcg64},
-    //{"shuffle_batch_2_pcg64", shuffle_batch_2_pcg64},
+    {"shuffle_batch_2_pcg64", shuffle_batch_2_pcg64},
     {"shuffle_batch_2_4_pcg64", shuffle_batch_2_4_pcg64},
-    //{"shuffle_batch_2_4_6_pcg64", shuffle_batch_2_4_6_pcg64}
+    {"shuffle_batch_2_4_6_pcg64", shuffle_batch_2_4_6_pcg64}
 };
 
 using cpp_shuffle_function = void (*)(std::vector<uint64_t>::iterator,
@@ -64,15 +64,15 @@ struct named_cpp_function {
 named_cpp_function cppfunc[] = {
     {"std::shuffle",
      std::shuffle<std::vector<uint64_t>::iterator, std::mt19937_64>},
-    //{"batched_random::shuffle_2",
-    // batched_random::shuffle_2<std::vector<uint64_t>::iterator,
-    //                           std::mt19937_64>},
+    {"batched_random::shuffle_2",
+     batched_random::shuffle_2<std::vector<uint64_t>::iterator,
+                               std::mt19937_64>},
     {"batched_random::shuffle_2_4",
      batched_random::shuffle_2_4<std::vector<uint64_t>::iterator,
                                  std::mt19937_64>},
-    //{"batched_random::shuffle_2_4_6",
-    // batched_random::shuffle_2_4_6<std::vector<uint64_t>::iterator,
-    //                               std::mt19937_64>},
+    {"batched_random::shuffle_2_4_6",
+     batched_random::shuffle_2_4_6<std::vector<uint64_t>::iterator,
+                                   std::mt19937_64>},
 
 };
 
