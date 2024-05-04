@@ -56,7 +56,7 @@ pcg_setseq_128_xsl_rr_64_random_r(struct pcg_state_setseq_128 *rng) {
 
 
 // use use a global state:
-static pcg64_random_t pcg64_global; // global state
+pcg64_random_t pcg64_global; // global state
 
 // call this once before calling pcg64_random_r
 static inline void pcg64_seed(uint64_t seed) {
@@ -72,6 +72,9 @@ static inline void pcg64_seed(uint64_t seed) {
 
 #define pcg64_random_r pcg_setseq_128_xsl_rr_64_random_r
 
-static inline uint64_t pcg64(void) { return pcg64_random_r(&pcg64_global); }
+#if defined(__GNUC__)
+__attribute__((always_inline))
+#endif
+inline uint64_t pcg64(void) { return pcg64_random_r(&pcg64_global); }
 
 #endif
