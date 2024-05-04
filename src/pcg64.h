@@ -5,10 +5,6 @@
 #include "splitmix64.h" // we are going to leverage splitmix64 to generate the seed
 #include <stdint.h>
 
-/***
-* start of the code copied verbatim from O'Neill's, except that we declare some
-*functions "static"
-****/
 
 typedef __uint128_t pcg128_t;
 #define PCG_128BIT_CONSTANT(high, low) ((((pcg128_t)high) << 64) + low)
@@ -24,11 +20,11 @@ struct pcg_state_setseq_128 {
 
 typedef struct pcg_state_setseq_128 pcg64_random_t;
 
-static inline void pcg_setseq_128_step_r(struct pcg_state_setseq_128 *rng) {
+inline void pcg_setseq_128_step_r(struct pcg_state_setseq_128 *rng) {
   rng->state = rng->state * PCG_DEFAULT_MULTIPLIER_128 + rng->inc;
 }
 
-static inline void pcg_setseq_128_srandom_r(struct pcg_state_setseq_128 *rng,
+inline void pcg_setseq_128_srandom_r(struct pcg_state_setseq_128 *rng,
                                             pcg128_t initstate,
                                             pcg128_t initseq) {
   rng->state = 0U;
@@ -39,16 +35,16 @@ static inline void pcg_setseq_128_srandom_r(struct pcg_state_setseq_128 *rng,
 }
 
 // verbatim from O'Neill's except that we skip her assembly:
-static inline uint64_t pcg_rotr_64(uint64_t value, unsigned int rot) {
+inline uint64_t pcg_rotr_64(uint64_t value, unsigned int rot) {
   return (value >> rot) | (value << ((-rot) & 63));
 }
 
-static inline uint64_t pcg_output_xsl_rr_128_64(pcg128_t state) {
+inline uint64_t pcg_output_xsl_rr_128_64(pcg128_t state) {
   return pcg_rotr_64(((uint64_t)(state >> 64u)) ^ (uint64_t)state,
                      (unsigned int)(state >> 122u));
 }
 
-static inline uint64_t
+inline uint64_t
 pcg_setseq_128_xsl_rr_64_random_r(struct pcg_state_setseq_128 *rng) {
   pcg_setseq_128_step_r(rng);
   return pcg_output_xsl_rr_128_64(rng->state);
@@ -59,7 +55,7 @@ pcg_setseq_128_xsl_rr_64_random_r(struct pcg_state_setseq_128 *rng) {
 pcg64_random_t pcg64_global; // global state
 
 // call this once before calling pcg64_random_r
-static inline void pcg64_seed(uint64_t seed) {
+inline void pcg64_seed(uint64_t seed) {
   pcg128_t initstate = PCG_128BIT_CONSTANT(splitmix64_stateless_offset(seed, 0),
                                            splitmix64_stateless_offset(seed, 1));
   // we pick a sequence at random
