@@ -164,6 +164,11 @@ void bench(std::vector<uint64_t> &input) {
       bench([&input]() { shuffle_batch_2_4_6(input.data(), input.size()); },
             min_repeat, min_time_ns, max_repeat));
 
+  pretty_print(
+      volume, volume * sizeof(uint64_t), "batch shuffle 2-3-4 (lehmer)",
+      bench([&input]() { shuffle_batch_2_3_4(input.data(), input.size()); },
+            min_repeat, min_time_ns, max_repeat));
+
   // PCG
 
   pretty_print(volume, volume * sizeof(uint64_t), "standard shuffle (PCG64)",
