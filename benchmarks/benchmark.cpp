@@ -30,8 +30,10 @@ void pretty_print(size_t volume, size_t bytes, std::string name,
                   event_aggregate agg) {
   printf("%-40s : ", name.c_str());
   printf(" %5.2f Gi/s ", volume / agg.fastest_elapsed_ns());
+  double best_speed = volume / agg.fastest_elapsed_ns();
+  double avg_speed = volume / agg.elapsed_ns();
   double range =
-      (agg.elapsed_ns() - agg.fastest_elapsed_ns()) / agg.elapsed_ns() * 100.0;
+      (best_speed - avg_speed) / avg_speed * 100.0;
   printf(" %5.2f GB/s (%2.0f %%) ", bytes / agg.fastest_elapsed_ns(), range);
   if (collector.has_events()) {
     printf(" %5.2f GHz ", agg.fastest_cycles() / agg.fastest_elapsed_ns());
