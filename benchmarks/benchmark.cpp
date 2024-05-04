@@ -162,7 +162,7 @@ void bench(std::vector<uint64_t> &input) {
           min_repeat, min_time_ns, max_repeat));
 }
 
-int main(int argc, char **argv) {
+int main(int , char **) {
   seed(1234);
   // We want to make sure we extend the range far enough to see regressions
   // for large arrays, if any.

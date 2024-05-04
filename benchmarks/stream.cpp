@@ -27,6 +27,8 @@ void precomp_shuffle(uint64_t *storage, uint64_t size) {
 
 void pretty_print(size_t volume, size_t bytes, std::string name,
                   event_aggregate agg) {
+  (void)bytes;
+  (void)name;
   printf(" %5.2f  ", agg.fastest_elapsed_ns() / volume);
   printf(" %5.2f  ", agg.elapsed_ns() / volume);
   printf("\t");
@@ -115,7 +117,7 @@ void bench_table(size_t start, size_t end, size_t step) {
   }
 }
 
-int main(int argc, char **argv) {
+int main(int , char **) {
   seed(1234);
   bench_table(1 << 8, 1 << 16, 64);
   return EXIT_SUCCESS;
