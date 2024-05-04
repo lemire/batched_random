@@ -8,7 +8,10 @@
 //   rng() produces uniformly random 64-bit values
 //
 // The return value is usable as `bound` for smaller batches of size k.
-uint64_t partial_shuffle_64b(
+#if defined(__GNUC__)
+__attribute__((always_inline))
+#endif
+inline uint64_t partial_shuffle_64b(
   uint64_t *storage,
   uint64_t n,
   uint64_t k,
@@ -69,7 +72,10 @@ uint64_t partial_shuffle_64b(
 //   result[i] is an (n-i) sided die roll
 //
 // The return value is usable as `bound` for smaller batches of size k.
-uint64_t partial_shuffle_dice_64b(
+#if defined(__GNUC__)
+__attribute__((always_inline))
+#endif
+inline uint64_t partial_shuffle_dice_64b(
   uint64_t n,
   uint64_t k,
   uint64_t bound,
@@ -119,7 +125,10 @@ uint64_t partial_shuffle_dice_64b(
 //   result[i] is an (n-i) sided die roll
 //
 // The return value is usable as `bound` with the same k and smaller n
-uint64_t partial_shuffle_dice_64b_interleaved_4x(
+#if defined(__GNUC__)
+__attribute__((always_inline))
+#endif
+inline uint64_t partial_shuffle_dice_64b_interleaved_4x(
   uint64_t n,
   uint64_t k,
   uint64_t bound,
@@ -172,7 +181,10 @@ uint64_t partial_shuffle_dice_64b_interleaved_4x(
 //
 // The dice rolls are put in the `result` array:
 //   result[i] is an (i+2) sided die roll
-void shuffle_17_dice_16b_interleaved(uint64_t (*rng)(void), uint16_t *result) {
+#if defined(__GNUC__)
+__attribute__((always_inline))
+#endif
+inline void shuffle_17_dice_16b_interleaved(uint64_t (*rng)(void), uint16_t *result) {
   uint16_t r[4];
   uint16_t m[4] = {(1 << 10) - 1, (1 << 8) - 1, (1 << 12) - 1, (1 << 12) - 1};
   
@@ -217,7 +229,10 @@ void shuffle_17_dice_16b_interleaved(uint64_t (*rng)(void), uint16_t *result) {
 //
 // The dice rolls are put in the `result` array:
 //   result[i] is an (i+2) sided die roll
-void shuffle_17_dice_16b_linear(uint64_t (*rng)(void), uint16_t *result) {
+#if defined(__GNUC__)
+__attribute__((always_inline))
+#endif
+inline void shuffle_17_dice_16b_linear(uint64_t (*rng)(void), uint16_t *result) {
   uint16_t r[4];
   uint16_t m[4] = {(1 << 10) - 1, (1 << 8) - 1, (1 << 12) - 1, (1 << 12) - 1};
   

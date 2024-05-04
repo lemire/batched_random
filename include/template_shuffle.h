@@ -21,7 +21,10 @@ namespace batched_random {
 //
 // The return value is usable as `bound` for smaller batches of size k.
 template <class RandomIt, class URBG>
-uint64_t partial_shuffle_64b(RandomIt storage, uint64_t n, uint64_t k,
+#if defined(__GNUC__)
+__attribute__((always_inline))
+#endif
+inline uint64_t partial_shuffle_64b(RandomIt storage, uint64_t n, uint64_t k,
                              uint64_t bound, URBG &&g) {
   std::uniform_int_distribution<uint64_t> rng(
       0, std::numeric_limits<uint64_t>::max());

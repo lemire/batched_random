@@ -27,7 +27,10 @@ uint64_t random_bounded(uint64_t range) {
 }
 
 
-uint64_t random_bounded_pcg64(uint64_t range) {
+#if defined(__GNUC__)
+__attribute__((always_inline))
+#endif
+inline uint64_t random_bounded_pcg64(uint64_t range) {
   __uint128_t random64bit, multiresult;
   uint64_t leftover;
   uint64_t threshold;

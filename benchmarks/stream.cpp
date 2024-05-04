@@ -84,18 +84,19 @@ void bench_line(std::vector<uint64_t> &input) {
   }
   std::random_device rd;
   std::mt19937_64 mtGenerator{rd()};
+  size_t min_time = 100000;
 
   for (auto &f : cppfunc) {
     pretty_print(volume, volume * sizeof(uint64_t), f.name,
                  bench([&input, &f, &mtGenerator]() {
                    f.function(input.begin(), input.end(),
                               std::mt19937_64(mtGenerator));
-                 }));
+                 }, min_time));
   }
   for (auto &f : func) {
     pretty_print(
         volume, volume * sizeof(uint64_t), f.name,
-        bench([&input, &f]() { f.function(input.data(), input.size()); }));
+        bench([&input, &f]() { f.function(input.data(), input.size()); }, min_time));
   }
 }
 
@@ -111,7 +112,7 @@ void bench_table(size_t start, size_t end, size_t lines) {
     printf("\t%s", f.name.c_str());
   }
   printf("\n");
-  for (double i = start; i <= end; i *= b) {
+  for (double i = start; round(i) <= end; i *= b) {
     std::vector<uint64_t> input(round(i));
     bench_line(input);
     std::cout << std::endl;
