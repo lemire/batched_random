@@ -169,6 +169,38 @@ void shuffle_batch_2_4_6(uint64_t *storage, uint64_t size) {
 }
 
 
+void shuffle_batch_2_3_4(uint64_t *storage, uint64_t size) {
+  uint64_t i = size;
+  for (; i > 0x40000000; i--) {
+    partial_shuffle_64b(storage, i, 1, i, lehmer64);
+  }
+
+  // Batches of 2 for sizes up to 2^30 elements
+  uint64_t bound = i * (i - 1);
+  for (; i > 0x80000; i -= 2) {
+    bound = partial_shuffle_64b(storage, i, 2, bound, lehmer64);
+  }
+
+  // Batches of 3 for sizes up to 2^19 elements
+  bound = i * (i - 1) * (i - 2);
+  for (; i > 0x4000; i -= 3) {
+    bound = partial_shuffle_64b(storage, i, 3, bound, lehmer64);
+  }
+
+  // Batches of 4 for sizes up to 2^14 elements
+  // compute i * (i-1) * (i-2) * (i-3) with only 2 multiplications
+  bound = i * (i - 3);
+  bound *= bound + 2;
+  for (; i > 4; i -= 4) {
+    bound = partial_shuffle_64b(storage, i, 4, bound, lehmer64);
+  }
+
+  if (i > 1) {
+    partial_shuffle_64b(storage, i, i-1, 24, lehmer64);
+  }
+}
+
+
 
 void shuffle_batch_2_pcg64(uint64_t *storage, uint64_t size) {
   uint64_t i = size;
