@@ -99,7 +99,8 @@ void bench_line(std::vector<uint64_t> &input) {
   }
 }
 
-void bench_table(size_t start, size_t end, size_t step) {
+void bench_table(size_t start, size_t end, size_t lines) {
+  double b = pow(double(end)/start, 1.0/lines);
   printf("# for each scheme, we give the best time/item and the average "
          "time/item in ns \n");
   printf("# Volume\t");
@@ -110,8 +111,8 @@ void bench_table(size_t start, size_t end, size_t step) {
     printf("\t%s", f.name.c_str());
   }
   printf("\n");
-  for (size_t i = start; i <= end; i += step) {
-    std::vector<uint64_t> input(i);
+  for (double i = start; i <= end; i *= b) {
+    std::vector<uint64_t> input(round(i));
     bench_line(input);
     std::cout << std::endl;
   }
@@ -119,6 +120,6 @@ void bench_table(size_t start, size_t end, size_t step) {
 
 int main(int , char **) {
   seed(1234);
-  bench_table(1 << 8, 1 << 16, 64);
+  bench_table(1 << 8, 1 << 16, 16);
   return EXIT_SUCCESS;
 }

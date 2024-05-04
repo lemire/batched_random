@@ -10,7 +10,7 @@ stats filename using 1 nooutput name 'X_'
 # Access the min and max X-values
 xmin = X_min
 xmax = X_max
-set xrange [xmin:xmax]
+set xrange [xmin:4096]
 set yrange [0:]
 
 plot filename using 1:2:3 with filledcurves title 'std::shuffle' fillstyle solid 0.5, \
