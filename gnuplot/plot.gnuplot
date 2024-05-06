@@ -2,7 +2,7 @@
 
 
 set term pdf
-set out filename . "cpppcg64.pdf"
+set out filename . "cpplehmer.pdf"
 set ylabel "time per item (ns)"
 set xlabel "number of entries"
 stats filename using 1 nooutput name 'X_'
