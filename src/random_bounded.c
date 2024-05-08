@@ -43,7 +43,7 @@ void shuffle(uint64_t *storage, uint64_t size, uint64_t (*rng)(void)) {
 // Fisher-Yates shuffle, rolling up to two dice at a time
 void shuffle_batch_2(uint64_t *storage, uint64_t size, uint64_t (*rng)(void)) {
   uint64_t i = size;
-  for (; i > 0x40000000; i--) {
+  for (; i > 1 << 30; i--) {
     partial_shuffle_64b(storage, i, 1, i, rng);
   }
 
