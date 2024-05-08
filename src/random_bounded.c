@@ -8,17 +8,17 @@
 
 void seed(uint64_t s) { lehmer64_seed(s); pcg64_seed(s); }
 
-uint64_t random_bounded(uint64_t range) {
+uint64_t random_bounded(uint64_t range, uint64_t (*rng)(void)) {
   __uint128_t random64bit, multiresult;
   uint64_t leftover;
   uint64_t threshold;
-  random64bit = lehmer64();
+  random64bit = rng();
   multiresult = random64bit * range;
   leftover = (uint64_t)multiresult;
   if (leftover < range) {
     threshold = -range % range;
     while (leftover < threshold) {
-      random64bit = lehmer64();
+      random64bit = rng();
       multiresult = random64bit * range;
       leftover = (uint64_t)multiresult;
     }
@@ -27,28 +27,11 @@ uint64_t random_bounded(uint64_t range) {
 }
 
 
-inline uint64_t random_bounded_pcg64(uint64_t range) {
-  __uint128_t random64bit, multiresult;
-  uint64_t leftover;
-  uint64_t threshold;
-  random64bit = pcg64();
-  multiresult = random64bit * range;
-  leftover = (uint64_t)multiresult;
-  if (leftover < range) {
-    threshold = -range % range;
-    while (leftover < threshold) {
-      random64bit = pcg64();
-      multiresult = random64bit * range;
-      leftover = (uint64_t)multiresult;
-    }
-  }
-  return (uint64_t)(multiresult >> 64); // [0, range)
-}
-
-void shuffle(uint64_t *storage, uint64_t size) {
+// Fisher-Yates shuffle, rolling one die at a time
+void shuffle(uint64_t *storage, uint64_t size, uint64_t (*rng)(void)) {
   uint64_t i;
   for (i = size; i > 1; i--) {
-    uint64_t nextpos = random_bounded(i);
+    uint64_t nextpos = random_bounded(i, rng);
     uint64_t tmp = storage[i - 1];   // likely in cache
     uint64_t val = storage[nextpos]; // could be costly
     storage[i - 1] = val;
@@ -56,220 +39,97 @@ void shuffle(uint64_t *storage, uint64_t size) {
   }
 }
 
-void shuffle_pcg64(uint64_t *storage, uint64_t size) {
-  uint64_t i;
-  for (i = size; i > 1; i--) {
-    uint64_t nextpos = random_bounded_pcg64(i);
-    uint64_t tmp = storage[i - 1];   // likely in cache
-    uint64_t val = storage[nextpos]; // could be costly
-    storage[i - 1] = val;
-    storage[nextpos] = tmp; // you might have to read this store later
-  }
-}
 
-void shuffle_naive_batch(uint64_t *storage, uint64_t size) {
+// Fisher-Yates shuffle, rolling up to two dice at a time
+void shuffle_batch_2(uint64_t *storage, uint64_t size, uint64_t (*rng)(void)) {
   uint64_t i = size;
-  uint64_t nextpos, nextpos1, nextpos2, tmp, val;
-
   for (; i > 0x40000000; i--) {
-    nextpos = random_bounded(i);
-    tmp = storage[i - 1];   // likely in cache
-    val = storage[nextpos]; // could be costly
-    storage[i - 1] = val;
-    storage[nextpos] = tmp; // you might have to read this store later
+    partial_shuffle_64b(storage, i, 1, i, rng);
   }
 
+  // Batches of 2 for sizes up to 2^30 elements
+  uint64_t bound = (uint64_t)1 << 60;
   for (; i > 1; i -= 2) {
-    nextpos1 = random_bounded(i);
-    nextpos2 = random_bounded(i - 1);
-
-    tmp = storage[i - 1];    // likely in cache
-    val = storage[nextpos1]; // could be costly
-    storage[i - 1] = val;
-    storage[nextpos1] = tmp; // you might have to read this store later
-    tmp = storage[i - 2];    // likely in cache
-    val = storage[nextpos2]; // could be costly
-    storage[i - 2] = val;
-    storage[nextpos2] = tmp; // you might have to read this store later
+    bound = partial_shuffle_64b(storage, i, 2, bound, rng);
   }
 }
 
 
-void shuffle_batch_2(uint64_t *storage, uint64_t size) {
+// Fisher-Yates shuffle, rolling up to six dice at a time
+void shuffle_batch_23456(uint64_t *storage, uint64_t size, uint64_t (*rng)(void)) {
   uint64_t i = size;
-  for (; i > 0x40000000; i--) {
-    partial_shuffle_64b(storage, i, 1, i, lehmer64);
+  for (; i > 1 << 30; i--) {
+    partial_shuffle_64b(storage, i, 1, i, rng);
   }
-
+  
   // Batches of 2 for sizes up to 2^30 elements
-  uint64_t bound = i * (i - 1);
-  for (; i > 1; i -= 2) {
-    bound = partial_shuffle_64b(storage, i, 2, bound, lehmer64);
+  uint64_t bound = (uint64_t)1 << 60;
+  for (; i > 1 << 19; i -= 2) {
+    bound = partial_shuffle_64b(storage, i, 2, bound, rng);
   }
-}
-
-
-void shuffle_batch_2_4(uint64_t *storage, uint64_t size) {
-  uint64_t i = size;
-  for (; i > 0x40000000; i--) {
-    partial_shuffle_64b(storage, i, 1, i, lehmer64);
-  }
-
-  // Batches of 2 for sizes up to 2^30 elements
-  uint64_t bound = i * (i - 1);
-  for (; i > 0x4000; i -= 2) {
-    bound = partial_shuffle_64b(storage, i, 2, bound, lehmer64);
-  }
-
-  // Batches of 4 for sizes up to 2^14 elements
-  // compute i * (i-1) * (i-2) * (i-3) with only 2 multiplications
-  bound = i * (i - 3);
-  bound *= bound + 2;
-  for (; i > 4; i -= 4) {
-    bound = partial_shuffle_64b(storage, i, 4, bound, lehmer64);
-  }
-
-  if (i > 1) {
-    partial_shuffle_64b(storage, i, i-1, 24, lehmer64);
-  }
-}
-
-
-void shuffle_batch_2_4_6(uint64_t *storage, uint64_t size) {
-  uint64_t i = size;
-  for (; i > 0x40000000; i--) {
-    partial_shuffle_64b(storage, i, 1, i, lehmer64);
-  }
-
-  // Batches of 2 for sizes up to 2^30 elements
-  uint64_t bound = i * (i - 1);
-  for (; i > 0x4000; i -= 2) {
-    bound = partial_shuffle_64b(storage, i, 2, bound, lehmer64);
-  }
-
-  // Batches of 4 for sizes up to 2^14 elements
-  // compute i * (i-1) * (i-2) * (i-3) with only 2 multiplications
-  bound = i * (i - 3);
-  bound *= bound + 2;
-  for (; i > 512; i -= 4) {
-    bound = partial_shuffle_64b(storage, i, 4, bound, lehmer64);
-  }
-
-  // Batches of 6 for sizes up to 2^9 elements
-  // compute i * (i-1) * ... * (i-5) with only 3 multiplications
-  bound = i * (i - 5);
-  bound *= (bound + 4) * (bound + 6);
-  for (; i > 6; i -= 6) {
-    bound = partial_shuffle_64b(storage, i, 6, bound, lehmer64);
-  }
-
-  if (i > 1) {
-    partial_shuffle_64b(storage, i, i-1, 720, lehmer64);
-  }
-}
-
-
-void shuffle_batch_2_3_4(uint64_t *storage, uint64_t size) {
-  uint64_t i = size;
-  for (; i > 0x40000000; i--) {
-    partial_shuffle_64b(storage, i, 1, i, lehmer64);
-  }
-
-  // Batches of 2 for sizes up to 2^30 elements
-  uint64_t bound = i * (i - 1);
-  for (; i > 0x80000; i -= 2) {
-    bound = partial_shuffle_64b(storage, i, 2, bound, lehmer64);
-  }
-
+  
   // Batches of 3 for sizes up to 2^19 elements
-  bound = i * (i - 1) * (i - 2);
-  for (; i > 0x4000; i -= 3) {
-    bound = partial_shuffle_64b(storage, i, 3, bound, lehmer64);
+  bound = (uint64_t)1 << 57;
+  for (; i > 1 << 14; i -= 3) {
+    bound = partial_shuffle_64b(storage, i, 3, bound, rng);
   }
-
+  
   // Batches of 4 for sizes up to 2^14 elements
-  // compute i * (i-1) * (i-2) * (i-3) with only 2 multiplications
-  bound = i * (i - 3);
-  bound *= bound + 2;
-  for (; i > 4; i -= 4) {
-    bound = partial_shuffle_64b(storage, i, 4, bound, lehmer64);
+  bound = (uint64_t)1 << 56;
+  for (; i > 1 << 11; i -= 4) {
+    bound = partial_shuffle_64b(storage, i, 4, bound, rng);
   }
-
-  if (i > 1) {
-    partial_shuffle_64b(storage, i, i-1, 24, lehmer64);
+  
+  // Batches of 5 for sizes up to 2^11 elements
+  bound = (uint64_t)1 << 55;
+  for (; i > 1 << 9; i -= 5) {
+    bound = partial_shuffle_64b(storage, i, 5, bound, rng);
   }
-}
-
-
-
-void shuffle_batch_2_pcg64(uint64_t *storage, uint64_t size) {
-  uint64_t i = size;
-  for (; i > 0x40000000; i--) {
-    partial_shuffle_64b(storage, i, 1, i, pcg64);
-  }
-
-  // Batches of 2 for sizes up to 2^30 elements
-  uint64_t bound = i * (i - 1);
-  for (; i > 1; i -= 2) {
-    bound = partial_shuffle_64b(storage, i, 2, bound, pcg64);
-  }
-}
-
-void shuffle_batch_2_4_pcg64(uint64_t *storage, uint64_t size) {
-  uint64_t i = size;
-  for (; i > 0x40000000; i--) {
-    partial_shuffle_64b(storage, i, 1, i, pcg64);
-  }
-
-  // Batches of 2 for sizes up to 2^30 elements
-  uint64_t bound = i * (i - 1);
-  for (; i > 0x4000; i -= 2) {
-    bound = partial_shuffle_64b(storage, i, 2, bound, pcg64);
-  }
-
-  // Batches of 4 for sizes up to 2^14 elements
-  // compute i * (i-1) * (i-2) * (i-3) with only 2 multiplications
-  bound = i * (i - 3);
-  bound *= bound + 2;
-  for (; i > 4; i -= 4) {
-    bound = partial_shuffle_64b(storage, i, 4, bound, pcg64);
-  }
-
-  if (i > 1) {
-    partial_shuffle_64b(storage, i, i-1, 24, pcg64);
-  }
-}
-
-
-void shuffle_batch_2_4_6_pcg64(uint64_t *storage, uint64_t size) {
-  uint64_t i = size;
-  for (; i > 0x40000000; i--) {
-    partial_shuffle_64b(storage, i, 1, i, pcg64);
-  }
-
-  // Batches of 2 for sizes up to 2^30 elements
-  uint64_t bound = i * (i - 1);
-  for (; i > 0x4000; i -= 2) {
-    bound = partial_shuffle_64b(storage, i, 2, bound, pcg64);
-  }
-
-  // Batches of 4 for sizes up to 2^14 elements
-  // compute i * (i-1) * (i-2) * (i-3) with only 2 multiplications
-  bound = i * (i - 3);
-  bound *= bound + 2;
-  for (; i > 512; i -= 4) {
-    bound = partial_shuffle_64b(storage, i, 4, bound, pcg64);
-  }
-
+  
   // Batches of 6 for sizes up to 2^9 elements
-  // compute i * (i-1) * ... * (i-5) with only 3 multiplications
-  bound = i * (i - 5);
-  bound *= (bound + 4) * (bound + 6);
+  bound = (uint64_t)1 << 54;
   for (; i > 6; i -= 6) {
-    bound = partial_shuffle_64b(storage, i, 6, bound, pcg64);
+    bound = partial_shuffle_64b(storage, i, 6, bound, rng);
   }
-
+  
   if (i > 1) {
-    partial_shuffle_64b(storage, i, i-1, 720, pcg64);
+    partial_shuffle_64b(storage, i, i-1, 720, rng);
   }
+}
+
+
+// Shuffle with Lehmer RNG
+
+void shuffle_lehmer(uint64_t *storage, uint64_t size) {
+  shuffle(storage, size, lehmer64);
+}
+
+void shuffle_lehmer_2(uint64_t *storage, uint64_t size) {
+  shuffle_batch_2(storage, size, lehmer64);
+}
+
+void shuffle_lehmer_23456(uint64_t *storage, uint64_t size) {
+  shuffle_batch_23456(storage, size, lehmer64);
+}
+
+
+// Shuffle with PCG RNG
+
+void shuffle_pcg(uint64_t *storage, uint64_t size) {
+  shuffle(storage, size, pcg64);
+}
+
+void shuffle_pcg_2(uint64_t *storage, uint64_t size) {
+  shuffle_batch_2(storage, size, pcg64);
+}
+
+void shuffle_pcg_23456(uint64_t *storage, uint64_t size) {
+  shuffle_batch_23456(storage, size, pcg64);
+}
+
+
+// Random bounded Lehmer
+
+uint64_t random_bounded_lehmer(uint64_t range) {
+  return random_bounded(range, lehmer64);
 }
