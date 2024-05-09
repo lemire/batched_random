@@ -71,86 +71,63 @@ inline uint64_t partial_shuffle_64b(RandomIt storage, uint64_t n, uint64_t k,
 // last)
 template <class RandomIt, class URBG>
 extern void shuffle_2(RandomIt first, RandomIt last, URBG &&g) {
-
   uint64_t i = std::distance(first, last);
-  for (; i > 0x40000000; i--) {
+  for (; i > 1 << 30; i--) {
     partial_shuffle_64b(first, i, 1, i, g);
   }
 
   // Batches of 2 for sizes up to 2^30 elements
-  uint64_t bound = i * (i - 1);
+  uint64_t bound = (uint64_t)1 << 60;
   for (; i > 1; i -= 2) {
     bound = partial_shuffle_64b(first, i, 2, bound, g);
   }
 }
 
 
-
 // This is a template function that shuffles the elements in the range [first,
 // last)
 template <class RandomIt, class URBG>
-extern void shuffle_2_4(RandomIt first, RandomIt last, URBG &&g) {
-
+extern void shuffle_23456(RandomIt first, RandomIt last, URBG &&g) {
   uint64_t i = std::distance(first, last);
-  for (; i > 0x40000000; i--) {
+  for (; i > 1 << 30; i--) {
     partial_shuffle_64b(first, i, 1, i, g);
   }
 
   // Batches of 2 for sizes up to 2^30 elements
-  uint64_t bound = i * (i - 1);
-  for (; i > 0x4000; i -= 2) {
+  uint64_t bound = (uint64_t)1 << 60;
+  for (; i > 1 << 19; i -= 2) {
     bound = partial_shuffle_64b(first, i, 2, bound, g);
+  }
+  
+  // Batches of 3 for sizes up to 2^19 elements
+  bound = (uint64_t)1 << 57;
+  for (; i > 1 << 14; i -= 3) {
+    bound = partial_shuffle_64b(first, i, 3, bound, g);
   }
 
   // Batches of 4 for sizes up to 2^14 elements
-  // compute i * (i-1) * (i-2) * (i-3) with only 2 multiplications
-  bound = i * (i - 3);
-  bound *= bound + 2;
-  for (; i > 4; i -= 4) {
+  bound = (uint64_t)1 << 56;
+  for (; i > 1 << 11; i -= 4) {
     bound = partial_shuffle_64b(first, i, 4, bound, g);
   }
 
-  if (i > 1) {
-    partial_shuffle_64b(first, i, i - 1, 24, g);
-  }
-}
-
-// This is a template function that shuffles the elements in the range [first,
-// last)
-template <class RandomIt, class URBG>
-extern void shuffle_2_4_6(RandomIt first, RandomIt last, URBG &&g) {
-
-  uint64_t i = std::distance(first, last);
-  for (; i > 0x40000000; i--) {
-    partial_shuffle_64b(first, i, 1, i, g);
-  }
-
-  // Batches of 2 for sizes up to 2^30 elements
-  uint64_t bound = i * (i - 1);
-  for (; i > 0x4000; i -= 2) {
-    bound = partial_shuffle_64b(first, i, 2, bound, g);
-  }
-
-  // Batches of 4 for sizes up to 2^14 elements
-  // compute i * (i-1) * (i-2) * (i-3) with only 2 multiplications
-  bound = i * (i - 3);
-  bound *= bound + 2;
-  for (; i > 512; i -= 4) {
-    bound = partial_shuffle_64b(first, i, 4, bound, g);
+  // Batches of 5 for sizes up to 2^11 elements
+  bound = (uint64_t)1 << 55;
+  for (; i > 1 << 9; i -= 5) {
+    bound = partial_shuffle_64b(first, i, 5, bound, g);
   }
 
   // Batches of 6 for sizes up to 2^9 elements
-  // compute i * (i-1) * ... * (i-5) with only 3 multiplications
-  bound = i * (i - 5);
-  bound *= (bound + 4) * (bound + 6);
+  bound = (uint64_t)1 << 54;
   for (; i > 6; i -= 6) {
     bound = partial_shuffle_64b(first, i, 6, bound, g);
   }
 
   if (i > 1) {
-    partial_shuffle_64b(first, i, i - 1, 720, g);
+    partial_shuffle_64b(first, i, i-1, 720, g);
   }
 }
+
 } // namespace batched_random
 
 #endif // TEMPLATE_SHUFFLE_H

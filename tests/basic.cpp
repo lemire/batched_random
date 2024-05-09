@@ -140,15 +140,14 @@ struct named_function {
 };
 
 named_function func[] = {
-    {"shuffle", shuffle},
-    {"shuffle_batch_2", shuffle_batch_2},
-    {"shuffle_batch_2_4", shuffle_batch_2_4},
-    {"shuffle_batch_2_4_6", shuffle_batch_2_4_6},
-    {"shuffle_pcg64", shuffle_pcg64},
-    {"shuffle_batch_2_pcg64", shuffle_batch_2_pcg64},
-    {"shuffle_batch_2_4_pcg64", shuffle_batch_2_4_pcg64},
-    {"shuffle_batch_2_4_6_pcg64", shuffle_batch_2_4_6_pcg64},
-    {"shuffle_naive_batch", shuffle_naive_batch}};
+    {"shuffle_lehmer", shuffle_lehmer},
+    {"shuffle_lehmer_2", shuffle_lehmer_2},
+    {"shuffle_lehmer_23456", shuffle_lehmer_23456},
+    {"shuffle_pcg", shuffle_pcg},
+    {"shuffle_pcg_2", shuffle_pcg_2},
+    {"shuffle_pcg_23456", shuffle_pcg_23456}
+};
+
 bool test_everyone_can_move_everywhere() {
   std::cout << __FUNCTION__ << std::endl;
   for (const auto &f : func) {

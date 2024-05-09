@@ -44,15 +44,13 @@ struct named_function {
 };
 
 named_function func[] = {
-    {"precomp_shuffle", precomp_shuffle},
-    {"shuffle", shuffle},
-    {"shuffle_batch_2", shuffle_batch_2},
-    {"shuffle_batch_2_4", shuffle_batch_2_4},
-    {"shuffle_batch_2_4_6", shuffle_batch_2_4_6},
-    {"shuffle_pcg64", shuffle_pcg64},
-    {"shuffle_batch_2_pcg64", shuffle_batch_2_pcg64},
-    {"shuffle_batch_2_4_pcg64", shuffle_batch_2_4_pcg64},
-    {"shuffle_batch_2_4_6_pcg64", shuffle_batch_2_4_6_pcg64}
+    {"shuffle_lehmer", shuffle_lehmer},
+    {"shuffle_lehmer_2", shuffle_lehmer_2},
+    {"shuffle_lehmer_23456", shuffle_lehmer_23456},
+    {"shuffle_pcg", shuffle_pcg},
+    {"shuffle_pcg_2", shuffle_pcg_2},
+    {"shuffle_pcg_23456", shuffle_pcg_23456},
+    {"precomp_shuffle", precomp_shuffle}
 };
 
 using cpp_shuffle_function = void (*)(std::vector<uint64_t>::iterator,
@@ -62,40 +60,37 @@ using cpp_shuffle_function = void (*)(std::vector<uint64_t>::iterator,
 using fast_cpp_shuffle_function = void (*)(std::vector<uint64_t>::iterator,
                                       std::vector<uint64_t>::iterator,
                                       lehmer64 &&);
+
 struct named_cpp_function {
   std::string name;
   cpp_shuffle_function function;
 };
-named_cpp_function cppfunc[] = {
-    {"std::shuffle",
-     std::shuffle<std::vector<uint64_t>::iterator, std::mt19937_64>},
-    {"batched_random::shuffle_2",
-     batched_random::shuffle_2<std::vector<uint64_t>::iterator,
-                               std::mt19937_64>},
-    {"batched_random::shuffle_2_4",
-     batched_random::shuffle_2_4<std::vector<uint64_t>::iterator,
-                                 std::mt19937_64>},
-    {"batched_random::shuffle_2_4_6",
-     batched_random::shuffle_2_4_6<std::vector<uint64_t>::iterator,
-                                   std::mt19937_64>},
 
+named_cpp_function cppfunc[] = {
+    {"std::shuffle-mersenne",
+     std::shuffle<std::vector<uint64_t>::iterator, std::mt19937_64>},
+    
+    {"batched_random::shuffle_2-mersenne",
+     batched_random::shuffle_2<std::vector<uint64_t>::iterator, std::mt19937_64>},
+    
+    {"batched_random::shuffle_23456-mersenne",
+     batched_random::shuffle_23456<std::vector<uint64_t>::iterator, std::mt19937_64>}
 };
+
 struct named_fast_cpp_function {
   std::string name;
   fast_cpp_shuffle_function function;
 };
+
 named_fast_cpp_function fastcppfunc[] = {
-    {"std::shuffle-lehmer64",
+    {"std::shuffle-lehmer",
      std::shuffle<std::vector<uint64_t>::iterator, lehmer64>},
-    {"batched_random::shuffle_2-lehmer64",
-     batched_random::shuffle_2<std::vector<uint64_t>::iterator,
-                               lehmer64>},
-    {"batched_random::shuffle_2_4-lehmer64",
-     batched_random::shuffle_2_4<std::vector<uint64_t>::iterator,
-                                 lehmer64>},
-    {"batched_random::shuffle_2_4_6-lehmer64",
-     batched_random::shuffle_2_4_6<std::vector<uint64_t>::iterator,
-                                   lehmer64>},
+     
+    {"batched_random::shuffle_2-lehmer",
+     batched_random::shuffle_2<std::vector<uint64_t>::iterator, lehmer64>},
+                               
+    {"batched_random::shuffle_23456-lehmer",
+     batched_random::shuffle_23456<std::vector<uint64_t>::iterator, lehmer64>}
 };
 
 
@@ -104,31 +99,37 @@ void bench_line(std::vector<uint64_t> &input) {
   printf("%zu\t\t", volume);
   precomputed.resize(volume + 1);
   for (size_t i = 1; i < volume + 1; i++) {
-    precomputed[i] = random_bounded(i);
+    precomputed[i] = random_bounded_lehmer(i);
   }
   std::random_device rd;
   std::mt19937_64 mtGenerator{rd()};
   lehmer64 lehmerGenerator{rd};
-
   size_t min_time = 100000;
+  
   for (auto &f : fastcppfunc) {
-    pretty_print(volume, volume * sizeof(uint64_t), f.name,
-                 bench([&input, &f, &lehmerGenerator]() {
-                   f.function(input.begin(), input.end(),
-                              lehmer64(lehmerGenerator));
-                 }, min_time));
+    pretty_print(
+      volume, volume * sizeof(uint64_t), f.name,
+      bench([&input, &f, &lehmerGenerator]() {
+        f.function(input.begin(), input.end(), lehmer64(lehmerGenerator));
+      }, min_time)
+    );
   }
+  
   for (auto &f : cppfunc) {
-    pretty_print(volume, volume * sizeof(uint64_t), f.name,
-                 bench([&input, &f, &mtGenerator]() {
-                   f.function(input.begin(), input.end(),
-                              std::mt19937_64(mtGenerator));
-                 }, min_time));
+    pretty_print(
+      volume, volume * sizeof(uint64_t), f.name,
+      bench([&input, &f, &mtGenerator]() {
+        f.function(input.begin(), input.end(), std::mt19937_64(mtGenerator));
+      }, min_time)
+    );
   }
+  
   for (auto &f : func) {
     pretty_print(
-        volume, volume * sizeof(uint64_t), f.name,
-        bench([&input, &f]() { f.function(input.data(), input.size()); }, min_time));
+      volume, volume * sizeof(uint64_t), f.name,
+      bench([&input, &f]() { f.function(input.data(), input.size()); },
+      min_time)
+    );
   }
 }
 
