@@ -23,10 +23,9 @@ namespace batched_random {
 template <class RandomIt, class URBG>
 inline uint64_t partial_shuffle_64b(RandomIt storage, uint64_t n, uint64_t k,
                                     uint64_t bound, URBG &g) {
-  std::uniform_int_distribution<uint64_t> rng(
-      0, std::numeric_limits<uint64_t>::max());
+  static_assert(std::is_same<typename URBG::result_type, uint64_t>::value, "result_type must be uint64_t");
   __uint128_t x;
-  uint64_t r = rng(g);
+  uint64_t r = g();
   uint64_t pos1, pos2;
   uint64_t val1, val2;
 
@@ -49,7 +48,7 @@ inline uint64_t partial_shuffle_64b(RandomIt storage, uint64_t n, uint64_t k,
     uint64_t t = -bound % bound;
 
     while (r < t) {
-      r = rng(g);
+      r = g();
       for (uint64_t i = 0; i < k; i++) {
         x = (__uint128_t)(n - i) * (__uint128_t)r;
         r = (uint64_t)x;
