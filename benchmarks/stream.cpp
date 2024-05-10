@@ -99,16 +99,13 @@ void bench_line(std::vector<uint64_t> &input) {
     precomputed[i] = random_bounded_lehmer(i);
   }
   std::random_device rd;
-  std::mt19937_64 mtGenerator{rd()};
-  lehmer64 lehmerGenerator{rd};
   size_t min_time = 100000;
 
   for (auto &f : fastcppfunc) {
     pretty_print(volume, volume * sizeof(uint64_t), f.name,
                  bench(
-                     [&input, &f]() {
-                       std::random_device rd;
-                       lehmer64 lehmerGenerator{rd};
+                     [&input, &f, &rd]() {
+                       lehmer64 lehmerGenerator{rd()};
                        f.function(input.begin(), input.end(),
                                   lehmer64(lehmerGenerator));
                      },
@@ -118,8 +115,7 @@ void bench_line(std::vector<uint64_t> &input) {
   for (auto &f : cppfunc) {
     pretty_print(volume, volume * sizeof(uint64_t), f.name,
                  bench(
-                     [&input, &f]() {
-                       std::random_device rd;
+                     [&input, &f, &rd]() {
                        std::mt19937_64 mtGenerator{rd()};
                        f.function(input.begin(), input.end(),
                                   std::mt19937_64(mtGenerator));

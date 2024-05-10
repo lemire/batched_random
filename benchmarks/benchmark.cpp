@@ -46,6 +46,7 @@ void pretty_print(size_t volume, size_t bytes, std::string name,
 }
 
 void bench(std::vector<uint64_t> &input) {
+  std::random_device rd;
   size_t volume = input.size();
   if (volume == 0) {
     return;
@@ -74,18 +75,16 @@ void bench(std::vector<uint64_t> &input) {
 
   pretty_print(volume, volume * sizeof(uint64_t), "C++ std::shuffle (lehmer)",
                bench(
-                   [&input]() {
-                     std::random_device rd;
-                     lehmer64 lehmerGenerator{rd};
+                   [&input, &rd]() {
+                     lehmer64 lehmerGenerator{rd()};
                      std::shuffle(input.begin(), input.end(), lehmerGenerator);
                    },
                    min_repeat, min_time_ns, max_repeat));
 
   pretty_print(volume, volume * sizeof(uint64_t), "C++ shuffle 2 (lehmer)",
                bench(
-                   [&input]() {
-                     std::random_device rd;
-                     lehmer64 lehmerGenerator{rd};
+                   [&input,&rd]() {
+                     lehmer64 lehmerGenerator{rd()};
                      batched_random::shuffle_2(input.begin(), input.end(),
                                                lehmerGenerator);
                    },
@@ -93,9 +92,8 @@ void bench(std::vector<uint64_t> &input) {
 
   pretty_print(volume, volume * sizeof(uint64_t), "C++ shuffle 2-6 (lehmer)",
                bench(
-                   [&input]() {
-                     std::random_device rd;
-                     lehmer64 lehmerGenerator{rd};
+                   [&input,&rd]() {
+                     lehmer64 lehmerGenerator{rd()};
                      batched_random::shuffle_23456(input.begin(), input.end(),
                                                    lehmerGenerator);
                    },
@@ -105,8 +103,7 @@ void bench(std::vector<uint64_t> &input) {
 
   pretty_print(volume, volume * sizeof(uint64_t), "C++ std::shuffle (mersenne)",
                bench(
-                   [&input]() {
-                     std::random_device rd;
+                   [&input,&rd]() {
                      std::mt19937_64 mtGenerator{rd()};
                      std::shuffle(input.begin(), input.end(), mtGenerator);
                    },
@@ -114,8 +111,7 @@ void bench(std::vector<uint64_t> &input) {
 
   pretty_print(volume, volume * sizeof(uint64_t), "C++ shuffle 2 (mersenne)",
                bench(
-                   [&input]() {
-                     std::random_device rd;
+                   [&input,&rd]() {
                      std::mt19937_64 mtGenerator{rd()};
                      batched_random::shuffle_2(input.begin(), input.end(),
                                                mtGenerator);
@@ -124,8 +120,7 @@ void bench(std::vector<uint64_t> &input) {
 
   pretty_print(volume, volume * sizeof(uint64_t), "C++ shuffle 2-6 (mersenne)",
                bench(
-                   [&input]() {
-                     std::random_device rd;
+                   [&input,&rd]() {
                      std::mt19937_64 mtGenerator{rd()};
                      batched_random::shuffle_23456(input.begin(), input.end(),
                                                    mtGenerator);
