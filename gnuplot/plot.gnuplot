@@ -15,6 +15,7 @@ set xrange [xmin:xmax]
 set yrange [0:]
 set key bottom center
 set logscale x 2
+set format x "2^{%L}"
 
 plot filename using 1:2:3 with filledcurves title 'std::shuffle' fillstyle solid 0.9, \
 "" using 1:4:5 with filledcurves title 'shuffle\_2' fillstyle solid 0.9, \
