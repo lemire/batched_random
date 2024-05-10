@@ -66,6 +66,6 @@ inline void pcg64_seed(uint64_t seed) {
 
 #define pcg64_random_r pcg_setseq_128_xsl_rr_64_random_r
 
-inline uint64_t pcg64(void) { return pcg64_random_r(&pcg64_global); }
+static inline uint64_t pcg64(void) { return pcg64_random_r(&pcg64_global); }
 
 #endif
