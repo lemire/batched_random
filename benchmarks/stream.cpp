@@ -106,7 +106,9 @@ void bench_line(std::vector<uint64_t> &input) {
   for (auto &f : fastcppfunc) {
     pretty_print(volume, volume * sizeof(uint64_t), f.name,
                  bench(
-                     [&input, &f, &lehmerGenerator]() {
+                     [&input, &f]() {
+                       std::random_device rd;
+                       lehmer64 lehmerGenerator{rd};
                        f.function(input.begin(), input.end(),
                                   lehmer64(lehmerGenerator));
                      },
@@ -116,7 +118,9 @@ void bench_line(std::vector<uint64_t> &input) {
   for (auto &f : cppfunc) {
     pretty_print(volume, volume * sizeof(uint64_t), f.name,
                  bench(
-                     [&input, &f, &mtGenerator]() {
+                     [&input, &f]() {
+                       std::random_device rd;
+                       std::mt19937_64 mtGenerator{rd()};
                        f.function(input.begin(), input.end(),
                                   std::mt19937_64(mtGenerator));
                      },

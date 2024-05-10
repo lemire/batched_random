@@ -9,6 +9,10 @@ public:
   static constexpr result_type(max)() { return UINT64_MAX; }
 
   lehmer64() : m_state(1234) {}
+  lehmer64(lehmer64&& l) : m_state(l.m_state) {}
+  lehmer64(lehmer64& l) : m_state(l.m_state) {}
+
+
   void step() { m_state *= UINT64_C(0xda942042e4dd58b5); }
   lehmer64(std::random_device &rd) { seed(rd); }
   lehmer64(std::random_device &&rd) { seed(rd); }
