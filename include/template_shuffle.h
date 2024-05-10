@@ -23,7 +23,7 @@ namespace batched_random {
 template <class RandomIt, class URBG>
 inline uint64_t partial_shuffle_64b(RandomIt storage, uint64_t n, uint64_t k,
                                     uint64_t bound, URBG &g) {
-  static_assert(std::is_same<typename URBG::result_type, uint64_t>::value, "retval must be bool");
+  static_assert(std::is_same<typename URBG::result_type, uint64_t>::value, "result_type must be uint64_t");
   __uint128_t x;
   uint64_t r = g();
   uint64_t pos1, pos2;
