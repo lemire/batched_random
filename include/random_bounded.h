@@ -12,7 +12,8 @@ uint64_t random_bounded_lehmer(uint64_t range);
 // shuffle the storage array
 void shuffle(uint64_t *storage, uint64_t size, uint64_t (*rng)(void));
 void shuffle_batch_2(uint64_t *storage, uint64_t size, uint64_t (*rng)(void));
-void shuffle_batch_23456(uint64_t *storage, uint64_t size, uint64_t (*rng)(void));
+void shuffle_batch_23456(uint64_t *storage, uint64_t size,
+                         uint64_t (*rng)(void));
 
 // shuffle with lehmer rng
 void shuffle_lehmer(uint64_t *storage, uint64_t size);

@@ -10,7 +10,6 @@ inline uint64_t splitmix64_stateless(uint64_t index) {
   return z ^ (z >> 31);
 }
 
-
 // floor( ( (1+sqrt(5))/2 ) * 2**64 MOD 2**64)
 #define GOLDEN_GAMMA UINT64_C(0x9E3779B97F4A7C15)
 
@@ -24,9 +23,8 @@ inline uint64_t splitmix64_r(uint64_t *seed) {
 
 // returns the value of splitmix64 "offset" steps from seed
 inline uint64_t splitmix64_stateless_offset(uint64_t seed, uint64_t offset) {
-  seed += offset*GOLDEN_GAMMA;
+  seed += offset * GOLDEN_GAMMA;
   return splitmix64_r(&seed);
 }
-
 
 #endif // SPLITMIX64_H

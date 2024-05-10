@@ -5,7 +5,6 @@
 #include "splitmix64.h" // we are going to leverage splitmix64 to generate the seed
 #include <stdint.h>
 
-
 typedef __uint128_t pcg128_t;
 #define PCG_128BIT_CONSTANT(high, low) ((((pcg128_t)high) << 64) + low)
 #define PCG_DEFAULT_MULTIPLIER_128                                             \
@@ -25,8 +24,7 @@ inline void pcg_setseq_128_step_r(struct pcg_state_setseq_128 *rng) {
 }
 
 inline void pcg_setseq_128_srandom_r(struct pcg_state_setseq_128 *rng,
-                                            pcg128_t initstate,
-                                            pcg128_t initseq) {
+                                     pcg128_t initstate, pcg128_t initseq) {
   rng->state = 0U;
   rng->inc = (initseq << 1u) | 1u;
   pcg_setseq_128_step_r(rng);
@@ -50,14 +48,14 @@ pcg_setseq_128_xsl_rr_64_random_r(struct pcg_state_setseq_128 *rng) {
   return pcg_output_xsl_rr_128_64(rng->state);
 }
 
-
 // use use a global state:
 pcg64_random_t pcg64_global; // global state
 
 // call this once before calling pcg64_random_r
 inline void pcg64_seed(uint64_t seed) {
-  pcg128_t initstate = PCG_128BIT_CONSTANT(splitmix64_stateless_offset(seed, 0),
-                                           splitmix64_stateless_offset(seed, 1));
+  pcg128_t initstate =
+      PCG_128BIT_CONSTANT(splitmix64_stateless_offset(seed, 0),
+                          splitmix64_stateless_offset(seed, 1));
   // we pick a sequence at random
   pcg128_t initseq = PCG_128BIT_CONSTANT(splitmix64_stateless_offset(seed, 2),
                                          splitmix64_stateless_offset(seed, 3));

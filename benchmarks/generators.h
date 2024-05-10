@@ -2,8 +2,6 @@
 #define BENCHMARKS_GENERATORS_H
 #include <random>
 
-
-
 class lehmer64 {
 public:
   using result_type = uint64_t;
@@ -11,9 +9,7 @@ public:
   static constexpr result_type(max)() { return UINT64_MAX; }
 
   lehmer64() : m_state(1234) {}
-  void step() {
-    m_state *= UINT64_C(0xda942042e4dd58b5);
-  }
+  void step() { m_state *= UINT64_C(0xda942042e4dd58b5); }
   lehmer64(std::random_device &rd) { seed(rd); }
   lehmer64(std::random_device &&rd) { seed(rd); }
 

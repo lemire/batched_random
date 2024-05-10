@@ -22,7 +22,7 @@ namespace batched_random {
 // The return value is usable as `bound` for smaller batches of size k.
 template <class RandomIt, class URBG>
 inline uint64_t partial_shuffle_64b(RandomIt storage, uint64_t n, uint64_t k,
-                             uint64_t bound, URBG &g) {
+                                    uint64_t bound, URBG &g) {
   std::uniform_int_distribution<uint64_t> rng(
       0, std::numeric_limits<uint64_t>::max());
   __uint128_t x;
@@ -66,7 +66,6 @@ inline uint64_t partial_shuffle_64b(RandomIt storage, uint64_t n, uint64_t k,
   return bound;
 }
 
-
 // This is a template function that shuffles the elements in the range [first,
 // last)
 template <class RandomIt, class URBG>
@@ -83,7 +82,6 @@ extern void shuffle_2(RandomIt first, RandomIt last, URBG &&g) {
   }
 }
 
-
 // This is a template function that shuffles the elements in the range [first,
 // last)
 template <class RandomIt, class URBG>
@@ -98,7 +96,7 @@ extern void shuffle_23456(RandomIt first, RandomIt last, URBG &&g) {
   for (; i > 1 << 19; i -= 2) {
     bound = partial_shuffle_64b(first, i, 2, bound, g);
   }
-  
+
   // Batches of 3 for sizes up to 2^19 elements
   bound = (uint64_t)1 << 57;
   for (; i > 1 << 14; i -= 3) {
@@ -124,7 +122,7 @@ extern void shuffle_23456(RandomIt first, RandomIt last, URBG &&g) {
   }
 
   if (i > 1) {
-    partial_shuffle_64b(first, i, i-1, 720, g);
+    partial_shuffle_64b(first, i, i - 1, 720, g);
   }
 }
 
