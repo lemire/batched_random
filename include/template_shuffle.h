@@ -26,18 +26,16 @@ inline uint64_t partial_shuffle_64b(RandomIt storage, uint64_t n, uint64_t k,
   static_assert(std::is_same<typename URBG::result_type, uint64_t>::value, "result_type must be uint64_t");
   __uint128_t x;
   uint64_t r = g();
-  uint64_t pos1, pos2;
-  uint64_t val1, val2;
+  using diff_type = typename RandomIt::difference_type;
+  diff_type pos1;
+  diff_type pos2;
 
   for (uint64_t i = 0; i < k; i++) {
     x = (__uint128_t)(n - i) * (__uint128_t)r;
     r = (uint64_t)x;
     pos1 = n - i - 1;
     pos2 = (uint64_t)(x >> 64);
-    val1 = *(storage + pos1); // should be in cache
-    val2 = *(storage + pos2); // might not be in cache
-    *(storage + pos1) = val2;
-    *(storage + pos2) = val1; // will be read later
+    std::iter_swap(storage + pos1, storage + pos2);
   }
 
   if (r < bound) {
@@ -54,10 +52,7 @@ inline uint64_t partial_shuffle_64b(RandomIt storage, uint64_t n, uint64_t k,
         r = (uint64_t)x;
         pos1 = n - i - 1;
         pos2 = (uint64_t)(x >> 64);
-        val1 = *(storage + pos1); // should be in cache
-        val2 = *(storage + pos2); // might not be in cache
-        *(storage + pos1) = val2;
-        *(storage + pos2) = val1; // will be read later
+        std::iter_swap(storage + pos1, storage + pos2);
       }
     }
   }
