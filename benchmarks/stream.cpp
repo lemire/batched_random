@@ -53,11 +53,11 @@ named_function func[] = {{"shuffle_lehmer", shuffle_lehmer},
 
 using cpp_shuffle_function = void (*)(std::vector<uint64_t>::iterator,
                                       std::vector<uint64_t>::iterator,
-                                      std::mt19937_64 &&);
+                                      std::mt19937_64 &);
 
 using fast_cpp_shuffle_function = void (*)(std::vector<uint64_t>::iterator,
                                            std::vector<uint64_t>::iterator,
-                                           lehmer64 &&);
+                                           lehmer64 &);
 
 struct named_cpp_function {
   std::string name;
@@ -66,15 +66,18 @@ struct named_cpp_function {
 
 named_cpp_function cppfunc[] = {
     {"std::shuffle-mersenne",
-     std::shuffle<std::vector<uint64_t>::iterator, std::mt19937_64>},
-
+     [](std::vector<uint64_t>::iterator first,
+        std::vector<uint64_t>::iterator last,
+        std::mt19937_64 &g) { std::shuffle(first, last, g); }},
     {"batched_random::shuffle_2-mersenne",
-     batched_random::shuffle_2<std::vector<uint64_t>::iterator,
-                               std::mt19937_64>},
-
+     [](std::vector<uint64_t>::iterator first,
+        std::vector<uint64_t>::iterator last,
+        std::mt19937_64 &g) { batched_random::shuffle_2(first, last, g); }},
     {"batched_random::shuffle_23456-mersenne",
-     batched_random::shuffle_23456<std::vector<uint64_t>::iterator,
-                                   std::mt19937_64>}};
+     [](std::vector<uint64_t>::iterator first,
+        std::vector<uint64_t>::iterator last, std::mt19937_64 &g) {
+       batched_random::shuffle_23456(first, last, g);
+     }}};
 
 struct named_fast_cpp_function {
   std::string name;
@@ -82,14 +85,17 @@ struct named_fast_cpp_function {
 };
 
 named_fast_cpp_function fastcppfunc[] = {
-    {"std::shuffle-lehmer",
-     std::shuffle<std::vector<uint64_t>::iterator, lehmer64>},
-
+    {"std::shuffle-lehmer", [](std::vector<uint64_t>::iterator first,
+                               std::vector<uint64_t>::iterator last,
+                               lehmer64 &g) { std::shuffle(first, last, g); }},
     {"batched_random::shuffle_2-lehmer",
-     batched_random::shuffle_2<std::vector<uint64_t>::iterator, lehmer64>},
-
+     [](std::vector<uint64_t>::iterator first,
+        std::vector<uint64_t>::iterator last,
+        lehmer64 &g) { batched_random::shuffle_2(first, last, g); }},
     {"batched_random::shuffle_23456-lehmer",
-     batched_random::shuffle_23456<std::vector<uint64_t>::iterator, lehmer64>}};
+     [](std::vector<uint64_t>::iterator first,
+        std::vector<uint64_t>::iterator last,
+        lehmer64 &g) { batched_random::shuffle_23456(first, last, g); }}};
 
 void bench_line(std::vector<uint64_t> &input) {
   size_t volume = input.size();
@@ -100,14 +106,14 @@ void bench_line(std::vector<uint64_t> &input) {
   }
   std::random_device rd;
   size_t min_time = 100000;
+  std::mt19937_64 mtGenerator{rd()};
+  lehmer64 lehmerGenerator{rd()};
 
   for (auto &f : fastcppfunc) {
     pretty_print(volume, volume * sizeof(uint64_t), f.name,
                  bench(
-                     [&input, &f, &rd]() {
-                       lehmer64 lehmerGenerator{rd()};
-                       f.function(input.begin(), input.end(),
-                                  lehmer64(lehmerGenerator));
+                     [&input, &f, &lehmerGenerator]() {
+                       f.function(input.begin(), input.end(), lehmerGenerator);
                      },
                      min_time));
   }
@@ -115,10 +121,8 @@ void bench_line(std::vector<uint64_t> &input) {
   for (auto &f : cppfunc) {
     pretty_print(volume, volume * sizeof(uint64_t), f.name,
                  bench(
-                     [&input, &f, &rd]() {
-                       std::mt19937_64 mtGenerator{rd()};
-                       f.function(input.begin(), input.end(),
-                                  std::mt19937_64(mtGenerator));
+                     [&input, &f, &mtGenerator]() {
+                       f.function(input.begin(), input.end(), mtGenerator);
                      },
                      min_time));
   }
