@@ -3,6 +3,7 @@
 #include <iomanip>
 #include <iostream>
 #include <numeric>
+#include <limits>
 
 extern "C" {
 #include "random_bounded.h"
