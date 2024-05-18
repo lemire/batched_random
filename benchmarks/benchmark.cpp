@@ -18,11 +18,11 @@ void precomp_shuffle(uint64_t *storage, uint64_t size,
                      const uint32_t *precomputed) {
   uint64_t tmp, val;
   uint32_t nextpos;
-  for (size_t i = size; i > 1; i--) {
+  for (size_t i = size - 1; i > 0; i--) {
     nextpos = precomputed[i];
-    tmp = storage[i - 1];   // likely in cache
+    tmp = storage[i];   // likely in cache
     val = storage[nextpos]; // could be costly
-    storage[i - 1] = val;
+    storage[i] = val;
     storage[nextpos] = tmp; // you might have to read this store later
   }
 }
@@ -45,107 +45,108 @@ void pretty_print(size_t volume, size_t bytes, std::string name,
   printf("\n");
 }
 
-void bench(std::vector<uint64_t> &input, bool include_cpp) {
-  std::random_device rd;
-  size_t volume = input.size();
-  if (volume == 0) {
+void bench(size_t size, bool include_cpp) {
+  constexpr size_t min_volume = 32768;
+  if (size == 0) {
     return;
   }
-  if (volume > 0xFFFFFFFF) {
+  size_t volume = size;
+  if (size < min_volume) {
+    volume *= min_volume / size;
+  }
+  std::vector<uint64_t> input(volume);
+  std::random_device rd;
+
+  if (size > 0xFFFFFFFF) {
     std::cerr << "WARNING: Volume too large for precomputed shuffle."
               << std::endl;
   }
-  std::vector<uint32_t> precomputed(volume + 1);
-  for (size_t i = 1; i < volume + 1; i++) {
-    precomputed[i] = random_bounded_lehmer(i);
+  std::vector<uint32_t> precomputed(volume);
+  for (size_t i = 0; i < volume; i++) {
+    input[i] = i;
+    uint64_t bound = (i % size) + 1;
+    precomputed[i] = random_bounded_lehmer(bound);
   }
 
-  std::cout << "Volume of precomputed values "
-            << precomputed.size() * sizeof(uint32_t) / 1024 << " kB"
+  std::cout << "Size of precomputed values "
+            << size * sizeof(uint32_t) / 1024 << " kB"
             << std::endl;
-  std::cout << "volume      : " << volume << " words" << std::endl;
-  std::cout << "volume      : " << volume * sizeof(uint64_t) / 1024 / 1024.
+  std::cout << "Size of shuffle      : " << size << " words" << std::endl;
+  std::cout << "Size of shuffle      : " << size * sizeof(uint64_t) / 1024 / 1024.
             << " MB" << std::endl;
 
   size_t min_repeat = 10;
   size_t min_time_ns = 100000000;
   size_t max_repeat = 100000;
-  constexpr size_t min_input_size = 32768;
-  size_t inner_repeat = 1;
-  if (volume < min_input_size) {
-    inner_repeat = min_input_size / volume;
-    printf("inner repeat: %zu\n", inner_repeat);
+
+  if (size < volume) {
+    printf("inner repeat: %zu\n", volume / size);
   }
-  size_t total_volume = volume * inner_repeat;
+
   if (include_cpp) {
     lehmer64 lehmerGenerator{rd()};
     std::mt19937_64 mtGenerator{rd()};
 
     // C++ Lehmer
 
-    pretty_print(total_volume, total_volume * sizeof(uint64_t),
+    pretty_print(volume, volume * sizeof(uint64_t),
                  "C++ std::shuffle (lehmer)",
                  bench(
-                     [&input, &lehmerGenerator, &inner_repeat]() {
-                       for (size_t t = 0; t < inner_repeat; t++) {
-                         std::shuffle(input.begin(), input.end(),
-                                      lehmerGenerator);
+                     [&input, &lehmerGenerator, size]() {
+                       for (auto t = input.begin(); t < input.end(); t += size) {
+                         std::shuffle(t, t + size, lehmerGenerator);
                        }
                      },
                      min_repeat, min_time_ns, max_repeat));
 
-    pretty_print(total_volume, total_volume * sizeof(uint64_t),
+    pretty_print(volume, volume * sizeof(uint64_t),
                  "C++ shuffle 2 (lehmer)",
                  bench(
-                     [&input, &lehmerGenerator, &inner_repeat]() {
-                       for (size_t t = 0; t < inner_repeat; t++) {
-                         batched_random::shuffle_2(input.begin(), input.end(),
-                                                   lehmerGenerator);
+                     [&input, &lehmerGenerator, size]() {
+                       for (auto t = input.begin(); t < input.end(); t += size) {
+                         batched_random::shuffle_2(t, t + size, lehmerGenerator);
                        }
                      },
                      min_repeat, min_time_ns, max_repeat));
 
-    pretty_print(total_volume, total_volume * sizeof(uint64_t),
+    pretty_print(volume, volume * sizeof(uint64_t),
                  "C++ shuffle 2-6 (lehmer)",
                  bench(
-                     [&input, &lehmerGenerator, &inner_repeat]() {
-                       for (size_t t = 0; t < inner_repeat; t++) {
-                         batched_random::shuffle_23456(
-                             input.begin(), input.end(), lehmerGenerator);
+                     [&input, &lehmerGenerator, size]() {
+                       for (auto t = input.begin(); t < input.end(); t += size) {
+                         batched_random::shuffle_23456(t, t + size, lehmerGenerator);
                        }
                      },
                      min_repeat, min_time_ns, max_repeat));
 
     // C++ Mersenne twister
 
-    pretty_print(total_volume, total_volume * sizeof(uint64_t),
+    pretty_print(volume, volume * sizeof(uint64_t),
                  "C++ std::shuffle (mersenne)",
                  bench(
-                     [&input, &mtGenerator, &inner_repeat]() {
-                       for (size_t t = 0; t < inner_repeat; t++) {
-                         std::shuffle(input.begin(), input.end(), mtGenerator);
+                     [&input, &mtGenerator, size]() {
+                       for (auto t = input.begin(); t < input.end(); t += size) {
+                         std::shuffle(t, t + size, mtGenerator);
                        }
                      },
                      min_repeat, min_time_ns, max_repeat));
 
-    pretty_print(total_volume, total_volume * sizeof(uint64_t),
+    pretty_print(volume, volume * sizeof(uint64_t),
                  "C++ shuffle 2 (mersenne)",
                  bench(
-                     [&input, &mtGenerator, &inner_repeat]() {
-                       for (size_t t = 0; t < inner_repeat; t++) {
-                         batched_random::shuffle_2(input.begin(), input.end(),
-                                                   mtGenerator);
+                     [&input, &mtGenerator, size]() {
+                       for (auto t = input.begin(); t < input.end(); t += size) {
+                         batched_random::shuffle_2(t, t + size, mtGenerator);
                        }
                      },
                      min_repeat, min_time_ns, max_repeat));
 
-    pretty_print(total_volume, total_volume * sizeof(uint64_t),
+    pretty_print(volume, volume * sizeof(uint64_t),
                  "C++ shuffle 2-6 (mersenne)",
                  bench(
-                     [&input, &mtGenerator, &inner_repeat]() {
-                       for (size_t t = 0; t < inner_repeat; t++) {
-                         batched_random::shuffle_23456(
-                             input.begin(), input.end(), mtGenerator);
+                     [&input, &mtGenerator, size]() {
+                       for (auto t = input.begin(); t < input.end(); t += size) {
+                         batched_random::shuffle_23456(t, t + size, mtGenerator);
                        }
                      },
                      min_repeat, min_time_ns, max_repeat));
@@ -153,77 +154,77 @@ void bench(std::vector<uint64_t> &input, bool include_cpp) {
 
   // Lehmer
 
-  pretty_print(total_volume, total_volume * sizeof(uint64_t),
+  pretty_print(volume, volume * sizeof(uint64_t),
                "standard shuffle (lehmer)",
                bench(
-                   [&input, &inner_repeat]() {
-                     for (size_t t = 0; t < inner_repeat; t++) {
-                       shuffle_lehmer(input.data(), input.size());
+                   [&input, size, volume]() {
+                     for (size_t t = 0; t < volume; t += size) {
+                       shuffle_lehmer(input.data() + t, size);
                      }
                    },
                    min_repeat, min_time_ns, max_repeat));
 
-  pretty_print(total_volume, total_volume * sizeof(uint64_t),
+  pretty_print(volume, volume * sizeof(uint64_t),
                "batch shuffle 2 (lehmer)",
                bench(
-                   [&input, &inner_repeat]() {
-                     for (size_t t = 0; t < inner_repeat; t++) {
-                       shuffle_lehmer_2(input.data(), input.size());
+                   [&input, size, volume]() {
+                     for (size_t t = 0; t < volume; t += size) {
+                       shuffle_lehmer_2(input.data() + t, size);
                      }
                    },
                    min_repeat, min_time_ns, max_repeat));
 
-  pretty_print(total_volume, total_volume * sizeof(uint64_t),
+  pretty_print(volume, volume * sizeof(uint64_t),
                "batch shuffle 2-6 (lehmer)",
                bench(
-                   [&input, &inner_repeat]() {
-                     for (size_t t = 0; t < inner_repeat; t++) {
-                       shuffle_lehmer_23456(input.data(), input.size());
+                   [&input, size, volume]() {
+                     for (size_t t = 0; t < volume; t += size) {
+                       shuffle_lehmer_23456(input.data() + t, size);
                      }
                    },
                    min_repeat, min_time_ns, max_repeat));
 
   // PCG
 
-  pretty_print(total_volume, total_volume * sizeof(uint64_t),
+  pretty_print(volume, volume * sizeof(uint64_t),
                "standard shuffle (PCG)",
                bench(
-                   [&input, &inner_repeat]() {
-                     for (size_t t = 0; t < inner_repeat; t++) {
-                       shuffle_pcg(input.data(), input.size());
+                   [&input, size, volume]() {
+                     for (size_t t = 0; t < volume; t += size) {
+                       shuffle_pcg(input.data() + t, size);
                      }
                    },
                    min_repeat, min_time_ns, max_repeat));
 
-  pretty_print(total_volume, total_volume * sizeof(uint64_t),
+  pretty_print(volume, volume * sizeof(uint64_t),
                "batch shuffle 2 (PCG)",
                bench(
-                   [&input, &inner_repeat]() {
-                     for (size_t t = 0; t < inner_repeat; t++) {
-                       shuffle_pcg_2(input.data(), input.size());
+                   [&input, size, volume]() {
+                     for (size_t t = 0; t < volume; t += size) {
+                       shuffle_pcg_2(input.data() + t, size);
                      }
                    },
                    min_repeat, min_time_ns, max_repeat));
 
-  pretty_print(total_volume, total_volume * sizeof(uint64_t),
+  pretty_print(volume, volume * sizeof(uint64_t),
                "batch shuffle 2-6 (PCG)",
                bench(
-                   [&input, &inner_repeat]() {
-                     for (size_t t = 0; t < inner_repeat; t++) {
-                       shuffle_pcg_23456(input.data(), input.size());
+                   [&input, size, volume]() {
+                     for (size_t t = 0; t < volume; t += size) {
+                       shuffle_pcg_23456(input.data() + t, size);
                      }
                    },
                    min_repeat, min_time_ns, max_repeat));
 
   // Precomputed
 
-  pretty_print(total_volume, total_volume * sizeof(uint64_t),
+  pretty_print(volume, volume * sizeof(uint64_t),
                "directed_shuffle (as a reference)",
                bench(
-                   [&input, precomputed, &inner_repeat]() {
-                     for (size_t t = 0; t < inner_repeat; t++) {
-                       precomp_shuffle(input.data(), input.size(),
-                                       precomputed.data());
+                   [&input, precomputed, size, volume]() {
+                     for (size_t t = 0; t < volume; t += size) {
+                       precomp_shuffle(input.data() + t, size,
+                                       precomputed.data() + t);
                      }
                    },
                    min_repeat, min_time_ns, max_repeat));
@@ -237,11 +238,11 @@ int main(int argc, char **argv) {
       include_cpp = true;
     }
   }
+
   // We want to make sure we extend the range far enough to see regressions
   // for large arrays, if any.
   for (size_t i = 1 << 9; i <= 1 << 20; i <<= 1) {
-    std::vector<uint64_t> input(i);
-    bench(input, include_cpp);
+    bench(i, include_cpp);
     std::cout << std::endl;
   }
 
