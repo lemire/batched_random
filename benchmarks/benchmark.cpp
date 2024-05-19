@@ -46,7 +46,7 @@ void pretty_print(size_t volume, size_t bytes, std::string name,
 }
 
 void bench(size_t size, bool include_cpp) {
-  constexpr size_t min_volume = 32768;
+  constexpr size_t min_volume = 4096;
   if (size == 0) {
     return;
   }
