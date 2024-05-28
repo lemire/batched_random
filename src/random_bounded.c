@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+#include "chacha.c"
 #include "batch_shuffle_dice.c"
 #include "lehmer64.h"
 #include "pcg64.h"
@@ -9,6 +10,7 @@
 void seed(uint64_t s) {
   lehmer64_seed(s);
   pcg64_seed(s);
+  chacha8_zero(&chacha_rng, s); 
 }
 
 uint64_t random_bounded(uint64_t range, uint64_t (*rng)(void)) {
@@ -126,6 +128,18 @@ void shuffle_pcg_23456(uint64_t *storage, uint64_t size) {
   shuffle_batch_23456(storage, size, pcg64);
 }
 
+// Shuffle with ChaCha RNG
+void shuffle_chacha(uint64_t *storage, uint64_t size) {
+  shuffle(storage, size, chacha_u64_global);
+}
+
+void shuffle_chacha_2(uint64_t *storage, uint64_t size) {
+  shuffle_batch_2(storage, size, chacha_u64_global);
+}
+
+void shuffle_chacha_23456(uint64_t *storage, uint64_t size) {
+  shuffle_batch_23456(storage, size, chacha_u64_global);
+}
 // Random bounded Lehmer
 
 uint64_t random_bounded_lehmer(uint64_t range) {

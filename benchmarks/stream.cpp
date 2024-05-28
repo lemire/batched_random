@@ -49,6 +49,9 @@ named_function func[] = {{"shuffle_lehmer", shuffle_lehmer},
                          {"shuffle_pcg", shuffle_pcg},
                          {"shuffle_pcg_2", shuffle_pcg_2},
                          {"shuffle_pcg_23456", shuffle_pcg_23456},
+                         {"shuffle_chacha", shuffle_chacha},
+                         {"shuffle_chacha_2", shuffle_chacha_2},
+                         {"shuffle_chacha_23456", shuffle_chacha_23456},
                          {"precomp_shuffle", precomp_shuffle}};
 
 using cpp_shuffle_function = void (*)(std::vector<uint64_t>::iterator,

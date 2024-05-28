@@ -216,6 +216,39 @@ void bench(size_t size, bool include_cpp) {
                    },
                    min_repeat, min_time_ns, max_repeat));
 
+
+  // chacha
+
+  pretty_print(volume, volume * sizeof(uint64_t),
+               "standard shuffle (chacha)",
+               bench(
+                   [&input, size, volume]() {
+                     for (size_t t = 0; t < volume; t += size) {
+                       shuffle_chacha(input.data() + t, size);
+                     }
+                   },
+                   min_repeat, min_time_ns, max_repeat));
+
+  pretty_print(volume, volume * sizeof(uint64_t),
+               "batch shuffle 2 (chacha)",
+               bench(
+                   [&input, size, volume]() {
+                     for (size_t t = 0; t < volume; t += size) {
+                       shuffle_chacha_2(input.data() + t, size);
+                     }
+                   },
+                   min_repeat, min_time_ns, max_repeat));
+
+  pretty_print(volume, volume * sizeof(uint64_t),
+               "batch shuffle 2-6 (chacha)",
+               bench(
+                   [&input, size, volume]() {
+                     for (size_t t = 0; t < volume; t += size) {
+                       shuffle_chacha_23456(input.data() + t, size);
+                     }
+                   },
+                   min_repeat, min_time_ns, max_repeat));
+
   // Precomputed
 
   pretty_print(volume, volume * sizeof(uint64_t),
