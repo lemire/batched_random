@@ -41,3 +41,9 @@ set out filename . "pcg64.pdf"
 plot filename using 1:20:21 with filledcurves title 'shuffle' fillstyle solid 0.9, \
 "" using 1:22:23 with filledcurves title 'shuffle\_2' fillstyle solid 0.9, \
 "" using 1:24:25 with filledcurves title 'shuffle\_6' fillstyle solid 0.9
+
+set out filename . "chacha.pdf"
+
+plot filename using 1:26:27 with filledcurves title 'shuffle' fillstyle solid 0.9, \
+"" using 1:28:29 with filledcurves title 'shuffle\_2' fillstyle solid 0.9, \
+"" using 1:30:31 with filledcurves title 'shuffle\_6' fillstyle solid 0.9
