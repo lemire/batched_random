@@ -1,6 +1,6 @@
 all:    benchmark basic stream
-CXX=clang++
-CC=clang
+CXX=c++
+CC=cc
 benchmark: benchmarks/benchmark.cpp random_bounded.o
 	$(CXX) $(CXXFLAGS) -std=c++17 -O3 -Wall  -Wextra  -o benchmark benchmarks/benchmark.cpp random_bounded.o  -Iinclude -Ibenchmarks 
 stream: benchmarks/stream.cpp random_bounded.o

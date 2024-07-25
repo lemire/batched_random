@@ -206,31 +206,6 @@ extern void shuffle_23456(RandomIt first, RandomIt last, URBG &&g) {
   } else if (i > 1) {
     partial_shuffle_64b(first, i, i - 1, 720, g);
   }
-  /*
-  if(i > (1 << 30)) {
-    internal::just1(first, i, g);
-    i = (1<<30);
-  }
-
-  if(i > (1 << 19)) {
-    i = internal::just2(first, i, g);
-  }
-  if(i > (1 << 14)) {
-    i = internal::just3(first, i, g);
-  }
-  if(i > (1 << 11)) {
-    i = internal::just4(first, i, g);
-  }
-  if(i > ( 1 << 9)) {
-    i = internal::just5(first, i, g);
-  }
-  if(i > 6) {
-    i = internal::just6(first, i, g);
-  }
-  if (i > 1) {
-    partial_shuffle_64b(first, i, i - 1, 720, g);
-  }
-  */
 }
 
 } // namespace batched_random
