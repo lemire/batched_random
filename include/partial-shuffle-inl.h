@@ -27,11 +27,12 @@ inline uint64_t partial_shuffle_64b(RandomIt storage, uint64_t n, uint64_t k,
   static_assert(std::is_same<typename URBG::result_type, uint64_t>::value, "result_type must be uint64_t");
   __uint128_t x;
   uint64_t r = g();
+  uint64_t indexes[6]; // We know that k < 7
 
   for (uint64_t i = 0; i < k; i++) {
     x = (__uint128_t)(n - i) * (__uint128_t)r;
     r = (uint64_t)x;
-    std::iter_swap(storage + n - i - 1, storage + (uint64_t)(x >> 64));
+    indexes[i] = (uint64_t)(x >> 64);
   }
 
   if (r < bound) {
@@ -46,7 +47,42 @@ inline uint64_t partial_shuffle_64b(RandomIt storage, uint64_t n, uint64_t k,
       for (uint64_t i = 0; i < k; i++) {
         x = (__uint128_t)(n - i) * (__uint128_t)r;
         r = (uint64_t)x;
-        std::iter_swap(storage + n - i - 1, storage + (uint64_t)(x >> 64));
+        indexes[i] = (uint64_t)(x >> 64);
+      }
+    }
+  }
+  for(uint64_t i = 0; i < k; i++) {
+    std::iter_swap(storage + n - i - 1, storage + indexes[i]);
+  }
+
+  return bound;
+}
+
+template <uint64_t k, class URBG>
+inline uint64_t partial_shuffle_64_k(uint64_t n,
+                                    uint64_t bound, URBG &g, uint64_t *indexes) {
+  static_assert(std::is_same<typename URBG::result_type, uint64_t>::value, "result_type must be uint64_t");
+  __uint128_t x;
+  uint64_t r = g();
+  for (uint64_t i = 0; i < k; i++) {
+    x = (__uint128_t)(n - i) * (__uint128_t)r;
+    r = (uint64_t)x;
+    indexes[i] = (uint64_t)(x >> 64);
+  }
+
+  if (r < bound) {
+    bound = n;
+    for (uint64_t i = 1; i < k; i++) {
+      bound *= n - i;
+    }
+    uint64_t t = -bound % bound;
+
+    while (r < t) {
+      r = g();
+      for (uint64_t i = 0; i < k; i++) {
+        x = (__uint128_t)(n - i) * (__uint128_t)r;
+        r = (uint64_t)x;
+        indexes[i] = (uint64_t)(x >> 64);
       }
     }
   }
@@ -54,6 +90,30 @@ inline uint64_t partial_shuffle_64b(RandomIt storage, uint64_t n, uint64_t k,
   return bound;
 }
 
+template <class URBG>
+inline uint64_t partial_shuffle_64_1(uint64_t n, uint64_t bound, URBG &g) {
+  static_assert(std::is_same<typename URBG::result_type, uint64_t>::value, "result_type must be uint64_t");
+  __uint128_t x;
+  uint64_t r = g();
+  uint64_t index;
+  x = (__uint128_t)n * (__uint128_t)r;
+  r = (uint64_t)x;
+  index = (uint64_t)(x >> 64);
+  
+  if (r < bound) {
+    bound = n;
+    uint64_t t = -bound % bound;
+
+    while (r < t) {
+      r = g();
+      x = (__uint128_t)n * (__uint128_t)r;
+      r = (uint64_t)x;
+      index = (uint64_t)(x >> 64);
+    }
+  }
+
+  return index;
+}
 } // namespace batched_random
 
 #endif // TEMPLATE_SHUFFLE_H
