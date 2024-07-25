@@ -17,6 +17,8 @@ make
 ./benchmark
 ```
 
+To get the C++ benchmarks, you can type `./benchmark --cpp`.
+
 To run tests:
 ```
 ./basic
@@ -31,3 +33,5 @@ See `src` directory for the main code.
 We use LLVM/clang for benchmarking. The code is portable and other compilers can be used. The performance is
 sensitive to the compiler used.
 
+GCC users may get better results with `shuffle 2` as opposed to `shuffle 2-6`. The reverse is true for LLVM
+users.
