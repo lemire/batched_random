@@ -45,7 +45,7 @@ void pretty_print(size_t volume, size_t bytes, std::string name,
   printf("\n");
 }
 
-void bench(size_t size, bool include_cpp) {
+void bench(size_t size, bool include_cpp, bool include_macro = false) {
   constexpr size_t min_volume = 4096;
   if (size == 0) {
     return;
@@ -173,7 +173,17 @@ void bench(size_t size, bool include_cpp) {
                      }
                    },
                    min_repeat, min_time_ns, max_repeat));
-
+  if(include_macro) {
+    pretty_print(volume, volume * sizeof(uint64_t),
+                "batch shuffle 2 (lehmer/m)",
+                bench(
+                    [&input, size, volume]() {
+                      for (size_t t = 0; t < volume; t += size) {
+                        shuffle_lehmer_2_macro(input.data() + t, size);
+                      }
+                    },
+                    min_repeat, min_time_ns, max_repeat));
+  }
   pretty_print(volume, volume * sizeof(uint64_t),
                "batch shuffle 2-6 (lehmer)",
                bench(
@@ -183,6 +193,17 @@ void bench(size_t size, bool include_cpp) {
                      }
                    },
                    min_repeat, min_time_ns, max_repeat));
+  if(include_macro) {
+    pretty_print(volume, volume * sizeof(uint64_t),
+                "batch shuffle 2-6 (m/lehmer)",
+                bench(
+                    [&input, size, volume]() {
+                      for (size_t t = 0; t < volume; t += size) {
+                        shuffle_lehmer_23456_macro(input.data() + t, size);
+                      }
+                    },
+                    min_repeat, min_time_ns, max_repeat));
+  }
 
   // PCG
 

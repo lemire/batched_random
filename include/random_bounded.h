@@ -20,7 +20,9 @@ void shuffle_batch_23456(uint64_t *storage, uint64_t size,
 // shuffle with lehmer rng
 void shuffle_lehmer(uint64_t *storage, uint64_t size);
 void shuffle_lehmer_2(uint64_t *storage, uint64_t size);
+void shuffle_lehmer_2_macro(uint64_t *storage, uint64_t size);
 void shuffle_lehmer_23456(uint64_t *storage, uint64_t size);
+void shuffle_lehmer_23456_macro(uint64_t *storage, uint64_t size);
 
 // shuffle with pcg64 rng
 void shuffle_pcg(uint64_t *storage, uint64_t size);

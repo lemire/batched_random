@@ -114,8 +114,6 @@ static inline void increment_counter(ChaCha *rng) {
 }
 
 uint32_t chacha_u32(ChaCha *rng) {
-    assert(0 <= rng->word_index && rng->word_index <= 16);
-
     if (rng->word_index == 16) {
         for (size_t i = 0; i < 16; i++) {
             rng->working_state[i] = rng->state[i];
@@ -163,7 +161,7 @@ void chacha_fill_u64(ChaCha *rng, uint64_t *array, size_t count) {
 }
 
 float chacha_f32(ChaCha *rng) {
-    return (chacha_u32(rng) >> 8) * 0x1p-24f;
+    return (float)(chacha_u32(rng) >> 8) * 0x1p-24f;
 }
 
 void chacha_fill_f32(ChaCha *rng, float *array, size_t count) {
@@ -173,7 +171,7 @@ void chacha_fill_f32(ChaCha *rng, float *array, size_t count) {
 }
 
 double chacha_f64(ChaCha *rng) {
-    return (chacha_u64(rng) >> 11) * 0x1p-53;
+    return (float)(chacha_u64(rng) >> 11) * 0x1p-53;
 }
 
 void chacha_fill_f64(ChaCha *rng, double *array, size_t count) {

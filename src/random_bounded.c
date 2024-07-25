@@ -57,6 +57,18 @@ void shuffle_batch_2(uint64_t *storage, uint64_t size, uint64_t (*rng)(void)) {
   }
 }
 
+#define SHUFFLE_BATCH_2(storage, size, rng) (\
+  {uint64_t i = size;\
+  for (; i > 1 << 30; i--) {\
+    PARTIAL_SHUFFLE_64B(storage, i, 1, i, rng);\
+  }\
+  uint64_t bound = (uint64_t)1 << 60;\
+  for (; i > 1; i -= 2) {\
+    PARTIAL_SHUFFLE_64B(storage, i, 2, bound, rng);\
+  }\
+})
+
+
 // Fisher-Yates shuffle, rolling up to six dice at a time
 void shuffle_batch_23456(uint64_t *storage, uint64_t size,
                          uint64_t (*rng)(void)) {
@@ -100,6 +112,38 @@ void shuffle_batch_23456(uint64_t *storage, uint64_t size,
   }
 }
 
+
+#define SHUFFLE_BATCH_23456(storage, size, rng) (\
+{\
+  uint64_t i = size;\
+  for (; i > 1 << 30; i--) {\
+    PARTIAL_SHUFFLE_64B_1(storage, i, rng);\
+  }\
+  uint64_t bound = (uint64_t)1 << 60;\
+  for (; i > 1 << 19; i -= 2) {\
+    PARTIAL_SHUFFLE_64B(storage, i, 2, bound, rng);\
+  }\
+  bound = (uint64_t)1 << 57;\
+  for (; i > 1 << 14; i -= 3) {\
+    PARTIAL_SHUFFLE_64B(storage, i, 3, bound, rng);\
+  }\
+  bound = (uint64_t)1 << 56;\
+  for (; i > 1 << 11; i -= 4) {\
+    PARTIAL_SHUFFLE_64B(storage, i, 4, bound, rng);\
+  }\
+  bound = (uint64_t)1 << 55;\
+  for (; i > 1 << 9; i -= 5) {\
+    PARTIAL_SHUFFLE_64B(storage, i, 5, bound, rng);\
+  }\
+  bound = (uint64_t)1 << 54;\
+  for (; i > 6; i -= 6) {\
+    PARTIAL_SHUFFLE_64B(storage, i, 6, bound, rng);\
+  }\
+  if (i > 1) {\
+    uint64_t bound = 720; PARTIAL_SHUFFLE_64B(storage, i, i - 1, bound, rng);\
+  }\
+})
+
 // Shuffle with Lehmer RNG
 
 void shuffle_lehmer(uint64_t *storage, uint64_t size) {
@@ -110,8 +154,18 @@ void shuffle_lehmer_2(uint64_t *storage, uint64_t size) {
   shuffle_batch_2(storage, size, lehmer64);
 }
 
+void shuffle_lehmer_2_macro(uint64_t *storage, uint64_t size) {
+  __uint128_t local_lehmer64_state = 1244;
+  SHUFFLE_BATCH_2(storage, size, LEHMER64_COMPUTE_REF);
+}
+
 void shuffle_lehmer_23456(uint64_t *storage, uint64_t size) {
   shuffle_batch_23456(storage, size, lehmer64);
+}
+
+void shuffle_lehmer_23456_macro(uint64_t *storage, uint64_t size) {
+  __uint128_t local_lehmer64_state = 1244;
+  SHUFFLE_BATCH_23456(storage, size, LEHMER64_COMPUTE_REF);
 }
 
 // Shuffle with PCG RNG

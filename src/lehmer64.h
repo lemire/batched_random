@@ -23,4 +23,8 @@ static inline uint64_t lehmer64() {
   return (uint64_t)(g_lehmer64_state >> 64);
 }
 
+#define LEHMER64_COMPUTE() (\
+  ((uint64_t)((local_lehmer64_state *= UINT64_C(0xda942042e4dd58b5)) >> 64)))
+
+#define LEHMER64_COMPUTE_REF LEHMER64_COMPUTE
 #endif

@@ -19,11 +19,11 @@ struct pcg_state_setseq_128 {
 
 typedef struct pcg_state_setseq_128 pcg64_random_t;
 
-inline void pcg_setseq_128_step_r(struct pcg_state_setseq_128 *rng) {
+static inline void pcg_setseq_128_step_r(struct pcg_state_setseq_128 *rng) {
   rng->state = rng->state * PCG_DEFAULT_MULTIPLIER_128 + rng->inc;
 }
 
-inline void pcg_setseq_128_srandom_r(struct pcg_state_setseq_128 *rng,
+static inline void pcg_setseq_128_srandom_r(struct pcg_state_setseq_128 *rng,
                                      pcg128_t initstate, pcg128_t initseq) {
   rng->state = 0U;
   rng->inc = (initseq << 1u) | 1u;
@@ -33,26 +33,26 @@ inline void pcg_setseq_128_srandom_r(struct pcg_state_setseq_128 *rng,
 }
 
 // verbatim from O'Neill's except that we skip her assembly:
-inline uint64_t pcg_rotr_64(uint64_t value, unsigned int rot) {
+static inline uint64_t pcg_rotr_64(uint64_t value, unsigned int rot) {
   return (value >> rot) | (value << ((-rot) & 63));
 }
 
-inline uint64_t pcg_output_xsl_rr_128_64(pcg128_t state) {
+static inline uint64_t pcg_output_xsl_rr_128_64(pcg128_t state) {
   return pcg_rotr_64(((uint64_t)(state >> 64u)) ^ (uint64_t)state,
                      (unsigned int)(state >> 122u));
 }
 
-inline uint64_t
+static inline uint64_t
 pcg_setseq_128_xsl_rr_64_random_r(struct pcg_state_setseq_128 *rng) {
   pcg_setseq_128_step_r(rng);
   return pcg_output_xsl_rr_128_64(rng->state);
 }
 
 // use use a global state:
-pcg64_random_t pcg64_global; // global state
+static pcg64_random_t pcg64_global; // global state
 
 // call this once before calling pcg64_random_r
-inline void pcg64_seed(uint64_t seed) {
+static inline void pcg64_seed(uint64_t seed) {
   pcg128_t initstate =
       PCG_128BIT_CONSTANT(splitmix64_stateless_offset(seed, 0),
                           splitmix64_stateless_offset(seed, 1));
