@@ -195,7 +195,7 @@ void bench(size_t size, bool include_cpp, bool include_macro = false) {
                    min_repeat, min_time_ns, max_repeat));
   if(include_macro) {
     pretty_print(volume, volume * sizeof(uint64_t),
-                "batch shuffle 2-6 (m/lehmer)",
+                "batch shuffle 2-6 (lehmer/m)",
                 bench(
                     [&input, size, volume]() {
                       for (size_t t = 0; t < volume; t += size) {
@@ -287,16 +287,22 @@ void bench(size_t size, bool include_cpp, bool include_macro = false) {
 int main(int argc, char **argv) {
   seed(1234);
   bool include_cpp = false;
+  bool include_macro = false;
   if (argc > 1) {
-    if (std::string(argv[1]) == "--cpp") {
-      include_cpp = true;
+    for(int k = 1; k < argc; k++) {
+      if (std::string(argv[k]) == "--cpp") {
+        include_cpp = true;
+      }
+      if (std::string(argv[k]) == "--macro") {
+        include_macro = true;
+      }
     }
   }
 
   // We want to make sure we extend the range far enough to see regressions
   // for large arrays, if any.
   for (size_t i = 1 << 9; i <= 1 << 20; i <<= 1) {
-    bench(i, include_cpp);
+    bench(i, include_cpp, include_macro);
     std::cout << std::endl;
   }
 
