@@ -17,6 +17,8 @@ make
 ./benchmark
 ```
 
+To get the C++ benchmarks, you can type `./benchmark --cpp`. They are disabled by default.
+
 To run tests:
 ```
 ./basic
@@ -32,6 +34,6 @@ We use LLVM/clang for benchmarking.
 
 The code is portable and other compilers can be used. The performance
 of the C++ code might be sensitive to the C++ compiler used.
-Specifically, we find that `batched_random::shuffle_23456` has relatively poor performance
-with GCC compared to LLVM/clang. We could not identify the cause of the issue.
-We recommend that GCC C++ users prefer `batched_random::shuffle_2`.
+Specifically, we find that `shuffle_23456` has relatively poor performance
+with GCC compared to LLVM/clang. GCC fails to optimize `shuffle_23456` properly.
+We recommend that GCC users prefer `shuffle_2`.
