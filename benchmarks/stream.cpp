@@ -52,7 +52,14 @@ named_function func[] = {{"shuffle_lehmer", shuffle_lehmer},
                          {"shuffle_chacha", shuffle_chacha},
                          {"shuffle_chacha_2", shuffle_chacha_2},
                          {"shuffle_chacha_23456", shuffle_chacha_23456},
-                         {"precomp_shuffle", precomp_shuffle}};
+                         {"precomp_shuffle", precomp_shuffle},
+                         {"naive_shuffle_lehmer_2", naive_shuffle_lehmer_2},
+                         {"naive_shuffle_lehmer_23456", naive_shuffle_lehmer_23456},  
+                         {"naive_shuffle_pcg_2", naive_shuffle_pcg_2},
+                         {"naive_shuffle_pcg_23456", naive_shuffle_pcg_23456},    
+                         {"naive_shuffle_chacha_2", naive_shuffle_chacha_2},
+                         {"naive_shuffle_chacha_23456", naive_shuffle_chacha_23456}  
+                         };
 
 using cpp_shuffle_function = void (*)(std::vector<uint64_t>::iterator,
                                       std::vector<uint64_t>::iterator,
@@ -162,6 +169,6 @@ void bench_table(size_t start, size_t end, size_t lines) {
 
 int main(int, char **) {
   seed(1234);
-  bench_table(1 << 13, 1 << 18, 5);
+  bench_table(1 << 8, 1 << 24, 5);
   return EXIT_SUCCESS;
 }
