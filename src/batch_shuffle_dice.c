@@ -40,20 +40,18 @@ inline void naive_partial_shuffle_64b(uint64_t *storage, uint64_t n, uint64_t k,
     pos2 = r % (n - i);
     r /= (n - i);
     pos1 = n - i - 1;
-    val1 = storage[pos1]; // should be in cache
-    val2 = storage[pos2]; // might not be in cache
+    val1 = storage[pos1];
+    val2 = storage[pos2];
     storage[pos1] = val2;
-    storage[pos2] = val1; // will be read later
+    storage[pos2] = val1;
   }
   // the last one does not need a modulo
-  {
-    uint64_t pos2 = r;
-    pos1 = n - k;
-    val1 = storage[pos1]; // should be in cache
-    val2 = storage[pos2]; // might not be in cache
-    storage[pos1] = val2;
-    storage[pos2] = val1; // will be read later
-  }
+  pos2 = r;
+  pos1 = n - k;
+  val1 = storage[pos1];
+  val2 = storage[pos2];
+  storage[pos1] = val2;
+  storage[pos2] = val1;
 }
 
 
