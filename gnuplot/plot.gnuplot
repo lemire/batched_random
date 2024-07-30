@@ -33,13 +33,15 @@ set out filename . "lehmer.pdf"
 
 plot filename using 1:14:15 with filledcurves title 'shuffle' fillstyle solid 0.9, \
 "" using 1:16:17 with filledcurves title 'shuffle\_2' fillstyle solid 0.9, \
+"" using 1:34:35 with filledcurves title 'naive shuffle\_2' fillstyle solid 0.9, \
 "" using 1:18:19 with filledcurves title 'shuffle\_6' fillstyle solid 0.9, \
-"" using 1:36:37 with filledcurves title 'naive  shuffle\_6' fillstyle solid 0.9
+"" using 1:36:37 with filledcurves title 'naive shuffle\_6' fillstyle solid 0.9
 
 set out filename . "pcg64.pdf"
 
 plot filename using 1:20:21 with filledcurves title 'shuffle' fillstyle solid 0.9, \
 "" using 1:22:23 with filledcurves title 'shuffle\_2' fillstyle solid 0.9, \
+"" using 1:38:39 with filledcurves title 'naive shuffle\_2' fillstyle solid 0.9,\
 "" using 1:24:25 with filledcurves title 'shuffle\_6' fillstyle solid 0.9, \
 "" using 1:40:41 with filledcurves title 'naive shuffle\_6' fillstyle solid 0.9
 
@@ -47,5 +49,6 @@ set out filename . "chacha.pdf"
 
 plot filename using 1:26:27 with filledcurves title 'shuffle' fillstyle solid 0.9, \
 "" using 1:28:29 with filledcurves title 'shuffle\_2' fillstyle solid 0.9, \
+"" using 1:42:43 with filledcurves title 'naive shuffle\_2' fillstyle solid 0.9, \
 "" using 1:30:31 with filledcurves title 'shuffle\_6' fillstyle solid 0.9, \
 "" using 1:44:45 with filledcurves title 'naive shuffle\_6' fillstyle solid 0.9
