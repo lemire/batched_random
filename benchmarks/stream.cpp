@@ -43,23 +43,20 @@ struct named_function {
   shuffle_function function;
 };
 
-named_function func[] = {{"shuffle_lehmer", shuffle_lehmer},
-                         {"shuffle_lehmer_2", shuffle_lehmer_2},
-                         {"shuffle_lehmer_23456", shuffle_lehmer_23456},
-                         {"shuffle_pcg", shuffle_pcg},
-                         {"shuffle_pcg_2", shuffle_pcg_2},
-                         {"shuffle_pcg_23456", shuffle_pcg_23456},
-                         {"shuffle_chacha", shuffle_chacha},
-                         {"shuffle_chacha_2", shuffle_chacha_2},
-                         {"shuffle_chacha_23456", shuffle_chacha_23456},
-                         {"precomp_shuffle", precomp_shuffle},
-                         {"naive_shuffle_lehmer_2", naive_shuffle_lehmer_2},
-                         {"naive_shuffle_lehmer_23456", naive_shuffle_lehmer_23456},  
-                         {"naive_shuffle_pcg_2", naive_shuffle_pcg_2},
-                         {"naive_shuffle_pcg_23456", naive_shuffle_pcg_23456},    
-                         {"naive_shuffle_chacha_2", naive_shuffle_chacha_2},
-                         {"naive_shuffle_chacha_23456", naive_shuffle_chacha_23456}  
-                         };
+named_function func[] = {
+    {"shuffle_lehmer", shuffle_lehmer},
+    {"shuffle_lehmer_2", shuffle_lehmer_2},
+    {"shuffle_lehmer_23456", shuffle_lehmer_23456},
+    {"shuffle_pcg", shuffle_pcg},
+    {"shuffle_pcg_2", shuffle_pcg_2},
+    {"shuffle_pcg_23456", shuffle_pcg_23456},
+    {"shuffle_chacha", shuffle_chacha},
+    {"shuffle_chacha_2", shuffle_chacha_2},
+    {"shuffle_chacha_23456", shuffle_chacha_23456},
+    {"precomp_shuffle", precomp_shuffle},
+    {"naive_shuffle_lehmer_2", naive_shuffle_lehmer_2},
+    {"naive_shuffle_pcg_2", naive_shuffle_pcg_2},
+    {"naive_shuffle_chacha_2", naive_shuffle_chacha_2}};
 
 using cpp_shuffle_function = void (*)(std::vector<uint64_t>::iterator,
                                       std::vector<uint64_t>::iterator,
@@ -115,33 +112,49 @@ void bench_line(std::vector<uint64_t> &input) {
     precomputed[i] = random_bounded_lehmer(i);
   }
   std::random_device rd;
-  size_t min_time = 100000;
+  size_t min_repeat = 1;
+  size_t min_time_ns = 1000000; // 1 ms
+  size_t max_repeat = 100000;
+  size_t repeat = 1;
+  double tolerance = 1.15;
+  if (volume * repeat < 10000) {
+    repeat++;
+  }
   std::mt19937_64 mtGenerator{rd()};
   lehmer64 lehmerGenerator{rd()};
 
   for (auto &f : fastcppfunc) {
-    pretty_print(volume, volume * sizeof(uint64_t), f.name,
+    pretty_print(volume * repeat, repeat * volume * sizeof(uint64_t), f.name,
                  bench(
-                     [&input, &f, &lehmerGenerator]() {
-                       f.function(input.begin(), input.end(), lehmerGenerator);
+                     [&input, &f, &lehmerGenerator, repeat]() {
+                       for (size_t r = 0; r < repeat; r++) {
+                         f.function(input.begin(), input.end(),
+                                    lehmerGenerator);
+                       }
                      },
-                     min_time));
+                     min_repeat, min_time_ns, max_repeat, tolerance));
   }
 
   for (auto &f : cppfunc) {
-    pretty_print(volume, volume * sizeof(uint64_t), f.name,
+    pretty_print(volume * repeat, repeat * volume * sizeof(uint64_t), f.name,
                  bench(
-                     [&input, &f, &mtGenerator]() {
-                       f.function(input.begin(), input.end(), mtGenerator);
+                     [&input, &f, &mtGenerator, repeat]() {
+                       for (size_t r = 0; r < repeat; r++) {
+                         f.function(input.begin(), input.end(), mtGenerator);
+                       }
                      },
-                     min_time));
+                     min_repeat, min_time_ns, max_repeat, tolerance));
   }
 
   for (auto &f : func) {
-    pretty_print(
-        volume, volume * sizeof(uint64_t), f.name,
-        bench([&input, &f]() { f.function(input.data(), input.size()); },
-              min_time));
+    pretty_print(volume * repeat, repeat * volume * sizeof(uint64_t), f.name,
+                 bench(
+                     [&input, &f, repeat]() {
+                       for (size_t r = 0; r < repeat; r++) {
+                         f.function(input.data(), input.size());
+                       }
+                     },
+                     min_repeat, min_time_ns, max_repeat, tolerance));
   }
 }
 
@@ -169,6 +182,6 @@ void bench_table(size_t start, size_t end, size_t lines) {
 
 int main(int, char **) {
   seed(1234);
-  bench_table(1 << 8, 1 << 24, 5);
+  bench_table(100, 400000, 10);
   return EXIT_SUCCESS;
 }

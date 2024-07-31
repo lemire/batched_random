@@ -96,30 +96,6 @@ void naive_shuffle_batch_2(uint64_t *storage, uint64_t size, uint64_t (*rng)(voi
   }
 }
 
-// Fisher-Yates shuffle, rolling up to six dice at a time
-void naive_shuffle_batch_23456(uint64_t *storage, uint64_t size,
-                         uint64_t (*rng)(void)) {
-  uint64_t i = size;
-  for (; i > (UINT64_C(1) << 32); i--) {
-    naive_partial_shuffle_64b(storage, i, 1, rng);
-  }
-  for (; i > 2642245; i -= 2) {
-    naive_partial_shuffle_64b(storage, i, 2, rng);
-  }
-  for (; i > 65536; i -= 3) {
-    naive_partial_shuffle_64b(storage, i, 3, rng);
-  }
-  for (; i > 7131; i -= 4) {
-    naive_partial_shuffle_64b(storage, i, 4, rng);
-  }
-  for (; i > 1625; i -= 6) {
-    naive_partial_shuffle_64b(storage, i, 5, rng);
-  }
-  if (i > 1) {
-    naive_partial_shuffle_64b(storage, i, i - 1, rng);
-  }
-}
-
 
 // Shuffle with Lehmer RNG
 
@@ -139,9 +115,6 @@ void naive_shuffle_lehmer_2(uint64_t *storage, uint64_t size) {
   naive_shuffle_batch_2(storage, size, lehmer64);
 }
 
-void naive_shuffle_lehmer_23456(uint64_t *storage, uint64_t size) {
-  naive_shuffle_batch_23456(storage, size, lehmer64);
-}
 // Shuffle with PCG RNG
 
 void shuffle_pcg(uint64_t *storage, uint64_t size) {
@@ -160,11 +133,6 @@ void naive_shuffle_pcg_2(uint64_t *storage, uint64_t size) {
   naive_shuffle_batch_2(storage, size, pcg64);
 }
 
-void naive_shuffle_pcg_23456(uint64_t *storage, uint64_t size) {
-  naive_shuffle_batch_23456(storage, size, pcg64);
-}
-
-
 // Shuffle with ChaCha RNG
 void shuffle_chacha(uint64_t *storage, uint64_t size) {
   shuffle(storage, size, chacha_u64_global);
@@ -181,11 +149,6 @@ void shuffle_chacha_23456(uint64_t *storage, uint64_t size) {
 void naive_shuffle_chacha_2(uint64_t *storage, uint64_t size) {
   naive_shuffle_batch_2(storage, size, chacha_u64_global);
 }
-
-void naive_shuffle_chacha_23456(uint64_t *storage, uint64_t size) {
-  naive_shuffle_batch_23456(storage, size, chacha_u64_global);
-}
-
 // Random bounded Lehmer
 
 uint64_t random_bounded_lehmer(uint64_t range) {

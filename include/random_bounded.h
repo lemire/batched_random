@@ -17,22 +17,18 @@ void shuffle_batch_2(uint64_t *storage, uint64_t size, uint64_t (*rng)(void));
 void shuffle_batch_23456(uint64_t *storage, uint64_t size,
                          uint64_t (*rng)(void));
 void naive_shuffle_batch_2(uint64_t *storage, uint64_t size, uint64_t (*rng)(void));
-void naive_shuffle_batch_23456(uint64_t *storage, uint64_t size,
-                         uint64_t (*rng)(void));
 
 // shuffle with lehmer rng
 void shuffle_lehmer(uint64_t *storage, uint64_t size);
 void shuffle_lehmer_2(uint64_t *storage, uint64_t size);
 void shuffle_lehmer_23456(uint64_t *storage, uint64_t size);
 void naive_shuffle_lehmer_2(uint64_t *storage, uint64_t size);
-void naive_shuffle_lehmer_23456(uint64_t *storage, uint64_t size);
 
 // shuffle with pcg64 rng
 void shuffle_pcg(uint64_t *storage, uint64_t size);
 void shuffle_pcg_2(uint64_t *storage, uint64_t size);
 void shuffle_pcg_23456(uint64_t *storage, uint64_t size);
 void naive_shuffle_pcg_2(uint64_t *storage, uint64_t size);
-void naive_shuffle_pcg_23456(uint64_t *storage, uint64_t size);
 
 
 // shuffle with chacha rng
@@ -40,7 +36,6 @@ void shuffle_chacha(uint64_t *storage, uint64_t size);
 void shuffle_chacha_2(uint64_t *storage, uint64_t size);
 void shuffle_chacha_23456(uint64_t *storage, uint64_t size);
 void naive_shuffle_chacha_2(uint64_t *storage, uint64_t size);
-void naive_shuffle_chacha_23456(uint64_t *storage, uint64_t size);
 
 
 // returns a random number in the range [0, range)
