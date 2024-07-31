@@ -30,18 +30,10 @@ uint64_t random_bounded(uint64_t range, uint64_t (*rng)(void)) {
 inline void naive_partial_shuffle_64b(uint64_t *storage, uint64_t n, uint64_t k, uint64_t (*rng)(void)) {
   uint64_t pos1, pos2;
   uint64_t val1, val2;
-  __uint128_t tesst = n;
-  for (uint64_t i = 1; i < k; i++) {
-    tesst *= n - i;
-  }
   uint64_t bound = n;
   for (uint64_t i = 1; i < k; i++) {
     bound *= n - i;
   }
-    if(tesst != bound) {
-        abort();
-    }
-
   // Next we generate a random integer in [0, bound)
   uint64_t r = random_bounded(bound, rng);
   for (uint64_t i = 0; i < k - 1; i++) {
