@@ -1,5 +1,68 @@
 #include <stdint.h>
 
+uint64_t random_bounded(uint64_t range, uint64_t (*rng)(void)) {
+  __uint128_t random64bit, multiresult;
+  uint64_t leftover;
+  uint64_t threshold;
+  random64bit = rng();
+  multiresult = random64bit * range;
+  leftover = (uint64_t)multiresult;
+  if (leftover < range) {
+    threshold = -range % range;
+    while (leftover < threshold) {
+      random64bit = rng();
+      multiresult = random64bit * range;
+      leftover = (uint64_t)multiresult;
+    }
+  }
+  return (uint64_t)(multiresult >> 64); // [0, range)
+}
+
+// This is a naive batched shuffle. We generate a single random number r in n*(n-1)*...*(n-(k-1)).
+// Then we get the random index as
+// r % n -> pos1
+// r = (r / n)
+// r % (n-1) -> pos2
+// r = (r / (n-1))
+// ...
+// r % (n-k+1) -> posk (can omit the modulo here)
+
+inline void naive_partial_shuffle_64b(uint64_t *storage, uint64_t n, uint64_t k, uint64_t (*rng)(void)) {
+  uint64_t pos1, pos2;
+  uint64_t val1, val2;
+  __uint128_t tesst = n;
+  for (uint64_t i = 1; i < k; i++) {
+    tesst *= n - i;
+  }
+  uint64_t bound = n;
+  for (uint64_t i = 1; i < k; i++) {
+    bound *= n - i;
+  }
+    if(tesst != bound) {
+        abort();
+    }
+
+  // Next we generate a random integer in [0, bound)
+  uint64_t r = random_bounded(bound, rng);
+  for (uint64_t i = 0; i < k - 1; i++) {
+    pos2 = r % (n - i);
+    r /= (n - i);
+    pos1 = n - i - 1;
+    val1 = storage[pos1];
+    val2 = storage[pos2];
+    storage[pos1] = val2;
+    storage[pos2] = val1;
+  }
+  // the last one does not need a modulo
+  pos2 = r;
+  pos1 = n - k;
+  val1 = storage[pos1];
+  val2 = storage[pos2];
+  storage[pos1] = val2;
+  storage[pos2] = val1;
+}
+
+
 // Performs k steps of a Fisher-Yates shuffle on n elements, in the array
 // `storage`.
 //
