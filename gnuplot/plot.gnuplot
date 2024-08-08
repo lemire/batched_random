@@ -18,21 +18,21 @@ set format x "2^{%L}"
 
 set out filename . "lehmer.pdf"
 
-plot filename using 1:14 with lines lw 5 title 'shuffle' , \
-"" using 1:34 with lines lw 5 title 'naive shuffle\_2' , \
-"" using 1:16 with lines lw 5 title 'shuffle\_2' , \
-"" using 1:18 with lines lw 5 title 'shuffle\_6' 
+plot filename using 1:2 with lines lw 5 title 'shuffle' , \
+"" using 1:3 with lines lw 5 title 'naive shuffle\_2' , \
+"" using 1:4 with lines lw 5 title 'shuffle\_2' , \
+"" using 1:5 with lines lw 5 title 'shuffle\_6' 
 
 set out filename . "pcg64.pdf"
 
-plot filename using 1:20 with lines lw 5 title 'shuffle' , \
-"" using 1:36 with lines lw 5 title 'naive shuffle\_2' ,\
-"" using 1:22 with lines lw 5 title 'shuffle\_2' , \
-"" using 1:24 with lines lw 5 title 'shuffle\_6'
+plot filename using 1:6 with lines lw 5 title 'shuffle' , \
+"" using 1:7 with lines lw 5 title 'naive shuffle\_2' ,\
+"" using 1:8 with lines lw 5 title 'shuffle\_2' , \
+"" using 1:9 with lines lw 5 title 'shuffle\_6'
 
 set out filename . "chacha.pdf"
 
-plot filename using 1:26 with lines lw 5 title 'shuffle' , \
-"" using 1:38 with lines lw 5 title 'naive shuffle\_2' , \
-"" using 1:28 with lines lw 5 title 'shuffle\_2' , \
-"" using 1:30 with lines lw 5 title 'shuffle\_6' 
+plot filename using 1:10 with lines lw 5 title 'shuffle' , \
+"" using 1:11 with lines lw 5 title 'naive shuffle\_2' , \
+"" using 1:12 with lines lw 5 title 'shuffle\_2' , \
+"" using 1:13 with lines lw 5 title 'shuffle\_6' 

@@ -19,7 +19,7 @@ event_aggregate bench(const function_type &function, size_t min_repeat = 1,
   if (N == 0) {
     N = 1;
   }
-  size_t max_trials = 10;
+  size_t max_trials = 30;
   size_t trial = 0;
   std::pair<double, event_aggregate> best{std::numeric_limits<double>::max(),
                                      event_aggregate{}};
@@ -46,7 +46,7 @@ event_aggregate bench(const function_type &function, size_t min_repeat = 1,
       best = {ratio, aggregate};
     }
     if(trial >= max_trials) {
-      fprintf(stderr, "Warning: failed to converge after %zu trials got %f \n", max_trials, best.first);
+      //fprintf(stderr, "Warning: failed to converge after %zu trials got %f \n", max_trials, best.first);
       return best.second;
     }
   } while(true);

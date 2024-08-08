@@ -27,11 +27,12 @@ inline uint64_t partial_shuffle_64b(RandomIt storage, uint64_t n, uint64_t k,
   static_assert(std::is_same<typename URBG::result_type, uint64_t>::value, "result_type must be uint64_t");
   __uint128_t x;
   uint64_t r = g();
+  uint64_t indexes[7]; // We know that k <= 7
 
   for (uint64_t i = 0; i < k; i++) {
     x = (__uint128_t)(n - i) * (__uint128_t)r;
     r = (uint64_t)x;
-    std::iter_swap(storage + n - i - 1, storage + (uint64_t)(x >> 64));
+    indexes[i] = (uint64_t)(x >> 64);
   }
 
   if (r < bound) {
@@ -46,9 +47,12 @@ inline uint64_t partial_shuffle_64b(RandomIt storage, uint64_t n, uint64_t k,
       for (uint64_t i = 0; i < k; i++) {
         x = (__uint128_t)(n - i) * (__uint128_t)r;
         r = (uint64_t)x;
-        std::iter_swap(storage + n - i - 1, storage + (uint64_t)(x >> 64));
+        indexes[i] = (uint64_t)(x >> 64);
       }
     }
+  }
+  for (uint64_t i = 0; i < k; i++) {
+    std::iter_swap(storage + n - i - 1, storage + indexes[i]);
   }
 
   return bound;
