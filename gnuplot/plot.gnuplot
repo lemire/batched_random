@@ -38,11 +38,10 @@ plot filename using 1:10 with lines lw 5 title 'shuffle' , \
 "" using 1:13 with lines lw 5 title 'shuffle\_6' 
 
 
-
-set ylabel "time ratio shuffle/shuffle_6"
-set yrange [1:]
+set ylabel "speed ratio (shuffle\\\_6/shuffle)"
+set yrange [1:5]
 set out filename . "ratio.pdf"
 
-plot filename using 1:($2/$5) with lines lw 5 title 'Lehmer', \
+plot filename using 1:($10/$13) with lines lw 5 title 'ChaCha', \
 "" using 1:($6/$9) with lines lw 5 title 'PCG64', \
-"" using 1:($10/$13) with lines lw 5 title 'ChaCha'
+"" using 1:($2/$5) with lines lw 5 title 'Lehmer'
