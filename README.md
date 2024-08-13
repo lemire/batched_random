@@ -4,6 +4,10 @@ We benchmark fast shuffling functions using batched random index generation.
 It is meant for research purposes. Though we have good benchmarks and tests, 
 this code is not meant to be production-ready.
 
+### Reference
+
+* Nevin Brackett-Rozinsky, Daniel Lemire, [Batched Ranged Random Integer Generation](https://arxiv.org/abs/2408.06213), Software: Practice and Experience (to appear)
+
 ### Requirements
 
 - Recent LLVM clang and clang++ compilers
