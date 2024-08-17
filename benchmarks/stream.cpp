@@ -137,7 +137,7 @@ void bench_line(std::vector<uint64_t> &input) {
 
 void bench_table(size_t start, size_t end, size_t lines) {
   double b = pow(double(end) / start, 1.0 / lines);
-  printf("# for each scheme, we give the best time/item and the average "
+  printf("# for each scheme, we give the average "
          "time/item in ns \n");
   printf("# Volume\t");
   for (auto &f : fastcppfunc) {
