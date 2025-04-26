@@ -8,8 +8,6 @@
 #include <algorithm>
 #include <cstdint>
 
-#include "partial-shuffle-inl.h"
-
 namespace batched_random {
 
 // Performs k steps of a Fisher-Yates shuffle on n elements, in the array
