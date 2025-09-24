@@ -9,9 +9,9 @@ event_collector collector;
 template <class function_type>
 event_aggregate bench(const function_type &function, size_t min_repeat = 1,
                       size_t min_time_ns = 1000000000,
-                      size_t max_repeat = 1000000, double tolerance = 2.0) {
+                      size_t max_repeat = 1000000, double tolerance = 1.8) {
   // run it a few times to warm up the cache
-  for (size_t i = 0; i < 10; i++) {
+  for (size_t i = 0; i < 100; i++) {
     function();
   }
 
@@ -19,7 +19,7 @@ event_aggregate bench(const function_type &function, size_t min_repeat = 1,
   if (N == 0) {
     N = 1;
   }
-  size_t max_trials = 30;
+  size_t max_trials = 1000;
   size_t trial = 0;
   std::pair<double, event_aggregate> best{std::numeric_limits<double>::max(),
                                      event_aggregate{}};
@@ -46,7 +46,7 @@ event_aggregate bench(const function_type &function, size_t min_repeat = 1,
       best = {ratio, aggregate};
     }
     if(trial >= max_trials) {
-      //fprintf(stderr, "Warning: failed to converge after %zu trials got %f \n", max_trials, best.first);
+      fprintf(stderr, "Warning: failed to converge after %zu trials got %f \n", max_trials, best.first);
       return best.second;
     }
   } while(true);
