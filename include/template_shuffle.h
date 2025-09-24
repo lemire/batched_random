@@ -310,7 +310,7 @@ void shuffle_23456p(RandomIt first, RandomIt last, URBG &&g) {
             indexes[j] = (uint64_t)(x >> 64); // Upper 64 bits give the index
         }
         // Check for bias in random number generation
-        if (r < bound) {
+        [[unlikely]] if (r < bound) {
             // Recalculate bound as n * (n-1) * ... * (n-(k-1))
             bound = n;
             for (uint64_t j = 1; j < k; j++) {
