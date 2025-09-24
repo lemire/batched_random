@@ -86,7 +86,6 @@ void bench(size_t size, bool include_cpp) {
   if (include_cpp) {
     lehmer64 lehmerGenerator{rd()};
     std::mt19937_64 mtGenerator{rd()};
-    std::ranlux48_base ranluxGenerator{rd()};
 
     // C++ Lehmer
     std::cout << "=== C++ Lehmer64" << std::endl;
@@ -206,65 +205,6 @@ void bench(size_t size, bool include_cpp) {
             },
             min_repeat, min_time_ns, max_repeat));
 
-    // C++ Ranlux
-    std::cout << "=== C++ Ranlux" << std::endl;
-
-    pretty_print(
-        volume, volume * sizeof(uint64_t), "C++ std::shuffle (ranlux)",
-        bench(
-            [&input, &ranluxGenerator, size]() {
-              for (auto t = input.begin(); t < input.end(); t += size) {
-                std::shuffle(t, t + size, ranluxGenerator);
-              }
-            },
-            min_repeat, min_time_ns, max_repeat));
-
-    pretty_print(volume, volume * sizeof(uint64_t), "C++ shuffle 2 (ranlux)",
-                 bench(
-                     [&input, &ranluxGenerator, size]() {
-                       for (auto t = input.begin(); t < input.end();
-                            t += size) {
-                         batched_random::shuffle_2(t, t + size, ranluxGenerator);
-                       }
-                     },
-                     min_repeat, min_time_ns, max_repeat));
-
-    pretty_print(volume, volume * sizeof(uint64_t), "C++ shuffle 2p (ranlux)",
-                 bench(
-                     [&input, &ranluxGenerator, size]() {
-                       for (auto t = input.begin(); t < input.end();
-                            t += size) {
-                         batched_random::shuffle_2p(t, t + size, ranluxGenerator);
-                       }
-                     },
-                     min_repeat, min_time_ns, max_repeat));
-    pretty_print(
-        volume, volume * sizeof(uint64_t), "C++ shuffle 2-4 (ranlux)",
-        bench(
-            [&input, &ranluxGenerator, size]() {
-              for (auto t = input.begin(); t < input.end(); t += size) {
-                batched_random::shuffle_24(t, t + size, ranluxGenerator);
-              }
-            },
-            min_repeat, min_time_ns, max_repeat));
-    pretty_print(
-        volume, volume * sizeof(uint64_t), "C++ shuffle 2-6 (ranlux)",
-        bench(
-            [&input, &ranluxGenerator, size]() {
-              for (auto t = input.begin(); t < input.end(); t += size) {
-                batched_random::shuffle_23456(t, t + size, ranluxGenerator);
-              }
-            },
-            min_repeat, min_time_ns, max_repeat));
-    pretty_print(
-        volume, volume * sizeof(uint64_t), "C++ shuffle 2-6p (ranlux)",
-        bench(
-            [&input, &ranluxGenerator, size]() {
-              for (auto t = input.begin(); t < input.end(); t += size) {
-                batched_random::shuffle_23456p(t, t + size, ranluxGenerator);
-              }
-            },
-            min_repeat, min_time_ns, max_repeat));
   } else {
 
     // Lehmer
